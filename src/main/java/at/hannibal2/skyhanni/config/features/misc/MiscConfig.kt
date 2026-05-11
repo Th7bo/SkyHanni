@@ -393,6 +393,14 @@ class MiscConfig {
 
     @Expose
     @ConfigOption(
+        name = "Daily Playtime Tracker",
+        desc = "Per-calendar-day SkyBlock time, averages, saved history, and a stats screen §e/shdailyplaytime§7.",
+    )
+    @Accordion
+    val dailyPlaytime: PlaytimeTrackerConfig = PlaytimeTrackerConfig()
+
+    @Expose
+    @ConfigOption(
         name = "Maintain Volume During Warnings",
         desc = "Do not change game volume levels when warning sounds are played.",
     )

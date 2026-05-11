@@ -82,6 +82,15 @@ class PlayerSpecificStorage {
     @Expose
     var limbo: LimboStats = LimboStats()
 
+    @Expose
+    var skyblockDailyPlaytime: DailySkyblockPlaytimeStorage = DailySkyblockPlaytimeStorage()
+
+    class DailySkyblockPlaytimeStorage {
+        /** Keys: ISO-local `yyyy-MM-dd`. Values: tracked seconds while in SkyBlock that day. */
+        @Expose
+        var secondsByIsoDate: MutableMap<String, Long> = mutableMapOf()
+    }
+
     class LimboStats {
         @Expose
         var playtime: Int = 0
