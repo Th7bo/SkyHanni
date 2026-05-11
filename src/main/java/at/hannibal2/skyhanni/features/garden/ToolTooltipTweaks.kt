@@ -12,6 +12,7 @@ import at.hannibal2.skyhanni.utils.ItemUtils.getInternalName
 import at.hannibal2.skyhanni.utils.ItemUtils.getLore
 import at.hannibal2.skyhanni.utils.KeyboardManager.isKeyHeld
 import at.hannibal2.skyhanni.utils.RegexUtils.find
+import at.hannibal2.skyhanni.utils.SkyBlockItemModifierUtils.getCultivatingCounter
 import at.hannibal2.skyhanni.utils.SkyBlockItemModifierUtils.getFarmingForDummiesCount
 import at.hannibal2.skyhanni.utils.SkyBlockItemModifierUtils.getReforgeModifier
 import at.hannibal2.skyhanni.utils.repopatterns.RepoPattern
@@ -115,6 +116,8 @@ object ToolTooltipTweaks {
                     iterator.addStat("  §7Dedication: §6+", dedicationFortune)
                     iterator.addStat("  §7Turbo-Crop: §6+", turboCropFortune)
                 }
+
+                iterator.addStat("  §7Cultivating: §a", itemStack.getCultivatingCounter()?.toInt() ?: 0)
             }
             // Beware, dubious control flow beyond these lines
             if (config.compactToolTooltips) {

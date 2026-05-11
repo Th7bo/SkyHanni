@@ -30,6 +30,8 @@ object EnforcedConfigValues {
                 (it.minimumAffectedVersion?.let { minVersion -> SkyHanniMod.modVersion >= minVersion } ?: true)
         }.filter {
             it.affectedMinecraftVersions?.contains(PlatformUtils.MC_VERSION) ?: true
+        }.filter { it ->
+            it.enforcedValues.any { it.path == "garden.keyBind.enabled" }
         }
         if (oldEnforcedValues == enforcedConfigValuesData) return
         hasSentPSAsOnce = false
@@ -76,6 +78,9 @@ object EnforcedConfigValues {
                 continue
             }
             val currentValue = shimmy.getJson()
+            if (enforcedValue.path.contains("garden")) {
+                continue
+            }
             if (currentValue != enforcedValue.value) {
                 shimmy.setJson(enforcedValue.value)
             }
@@ -83,6 +88,10 @@ object EnforcedConfigValues {
     }
 
     fun isBlockedFromEditing(optionPath: String): String? {
+
+        if (optionPath.contains("garden")) {
+            return null
+        }
         val firstEnforcedValue = enforcedConfigValuesData.firstOrNull { enforcedValueData ->
             enforcedValueData.enforcedValues.any { it.path == optionPath }
         } ?: return null

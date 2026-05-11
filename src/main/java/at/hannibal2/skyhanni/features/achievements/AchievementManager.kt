@@ -30,6 +30,7 @@ import at.hannibal2.skyhanni.utils.compat.withColor
 import at.hannibal2.skyhanni.utils.repopatterns.RepoPattern
 import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
+import net.minecraft.world.entity.vehicle.minecart.Minecart
 import net.minecraft.world.item.Items
 
 /**

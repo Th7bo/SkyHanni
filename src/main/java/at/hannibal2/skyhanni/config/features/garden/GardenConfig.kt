@@ -138,6 +138,15 @@ class GardenConfig {
     val sensitivityReducer: SensitivityReducerConfig = SensitivityReducerConfig()
 
     @Expose
+    @ConfigOption(
+        name = "Disable View Bobbing in Garden",
+        desc = "While on the Garden (including as a guest), turns off Minecraft view bobbing and restores your previous video setting when you leave.",
+    )
+    @ConfigEditorBoolean
+    @FeatureToggle
+    var disableViewBobbingInGarden: Boolean = false
+
+    @Expose
     @ConfigOption(name = "Crop Start Location", desc = "")
     @Accordion
     val cropStartLocation: CropStartLocationConfig = CropStartLocationConfig()

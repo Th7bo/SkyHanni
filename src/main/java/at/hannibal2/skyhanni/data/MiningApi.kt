@@ -173,6 +173,8 @@ object MiningApi {
         "block.metal.place",
     )
 
+    private val mithrilOres = setOf(OreBlock.LOW_TIER_MITHRIL, OreBlock.MID_TIER_MITHRIL, OreBlock.HIGH_TIER_MITHRIL)
+
     var heat: Int = 0
         private set
     var heatDisplay: String? = null
@@ -419,7 +421,10 @@ object MiningApi {
         val ignoreFilter = ignoreInit
         resetOreEvent()
 
-        if (surroundingMinedBlocks.isEmpty()) return
+        if (surroundingMinedBlocks.isEmpty()) {
+            println("SurroundingMinedBlocks was empty?")
+            return
+        }
 
         val originalBlock = surroundingMinedBlocks.firstOrNull { it.first.confirmed }?.first ?: run {
             surroundingMinedBlocks.clear()
@@ -432,7 +437,7 @@ object MiningApi {
             // efficient miner when other blocks are mined.
             // The more correct way of doing this would be making sure the OreType of the originally mined
             // block matches
-            if (ignoreFilter) it.first.ore == originalBlock.ore else it.first.confirmed
+            if (ignoreFilter) areOresCompatible(it.first.ore, originalBlock.ore) else it.first.confirmed
         }.countBy { it.first.ore }
 
         OreMinedEvent(originalBlock.ore, extraBlocks).post()
@@ -441,6 +446,12 @@ object MiningApi {
         surroundingMinedBlocks.clear()
         recentClickedBlocks.removeIf { it.value.passedSince() >= originalBlock.time.passedSince() }
         lastClickedPos = null
+    }
+
+    private fun areOresCompatible(ore1: OreBlock, ore2: OreBlock): Boolean {
+        if (ore1 == ore2) return true
+        if (ore1 in mithrilOres && ore2 in mithrilOres) return true
+        return false
     }
 
     @HandleEvent

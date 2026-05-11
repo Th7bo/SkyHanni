@@ -35,9 +35,9 @@ enum class OreBlock(
     val hasInitSound: Boolean = true,
 ) {
     // MITHRIL
-    LOW_TIER_MITHRIL(::isLowTierMithril, { inDwarvenMines || inGlacite }, OreCategory.DWARVEN_METAL),
-    MID_TIER_MITHRIL(::isMidTierMithril, { inDwarvenMines || inCrystalHollows || inGlacite }, OreCategory.DWARVEN_METAL),
-    HIGH_TIER_MITHRIL(::isHighTierMithril, { inDwarvenMines || inCrystalHollows || inGlacite }, OreCategory.DWARVEN_METAL),
+    LOW_TIER_MITHRIL(::isLowTierMithril, { inDwarvenMines || inGlacite }, OreCategory.DWARVEN_METAL, hasInitSound = false),
+    MID_TIER_MITHRIL(::isMidTierMithril, { inDwarvenMines || inCrystalHollows || inGlacite }, OreCategory.DWARVEN_METAL, hasInitSound = false),
+    HIGH_TIER_MITHRIL(::isHighTierMithril, { inDwarvenMines || inCrystalHollows || inGlacite }, OreCategory.DWARVEN_METAL, hasInitSound = false),
 
     // TITANIUM
     TITANIUM(::isTitanium, { inDwarvenMines || inGlacite }, OreCategory.DWARVEN_METAL),
