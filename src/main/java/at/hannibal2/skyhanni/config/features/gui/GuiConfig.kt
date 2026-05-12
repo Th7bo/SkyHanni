@@ -42,6 +42,11 @@ class GuiConfig {
     @Accordion
     val chroma: ChromaConfig = ChromaConfig()
 
+    @Expose
+    @ConfigOption(name = "Title Screen", desc = "Options for the Minecraft main menu (outside a world).")
+    @Accordion
+    val titleScreen: TitleScreenConfig = TitleScreenConfig()
+
     @ConfigOption(
         name = "Edit GUI Locations",
         desc = "Opens the Position Editor, allows changing the position of SkyHanni's overlays.",

@@ -14,6 +14,10 @@ build
 gradle.properties
 .gradle
 
+# Local Pack Core checkout (nested project; keep out of this repo unless submoduled intentionally)
+PackCore/
+@PackCore/
+
 # other
 .DS_STORE
 

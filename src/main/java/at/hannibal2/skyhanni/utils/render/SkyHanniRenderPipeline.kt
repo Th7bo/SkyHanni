@@ -164,6 +164,15 @@ enum class SkyHanniRenderPipeline(
         depthWrite = false,
         irisProgram = IrisCompat.IrisProgram.TEXTURED,
     ),
+    NEBULA_TITLE(
+        snippet = RenderPipelines.MATRICES_PROJECTION_SNIPPET,
+        vFormat = DefaultVertexFormat.POSITION_COLOR,
+        blend = BlendFunction.TRANSLUCENT,
+        vertexShaderPath = "nebula_title",
+        uniforms = mapOf("SkyHanniNebulaTitleUniforms" to UniformType.UNIFORM_BUFFER),
+        depthWrite = false,
+        depthTestFunction = DepthTestFunction.NO_DEPTH_TEST,
+    ),
     ;
 
     private val _pipe: RenderPipeline = RenderPipelines.register(

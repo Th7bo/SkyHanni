@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ffprobe -v quiet -print_format json -show_streams modern-mc.mp4)",
+      "Bash(ffprobe -v quiet -show_entries format=duration -of default=noprint_wrappers=1 modern-mc.mp4)",
+      "Bash(mkdir -p /tmp/mc_frames)",
+      "Bash(ffmpeg -i modern-mc.mp4 -vf \"fps=4,scale=640:360\" /tmp/mc_frames/frame_%03d.png -y -loglevel quiet)",
+      "Read(//tmp/**)",
+      "Bash(mkdir -p \"C:/Users/thibo/Projects/SkyHanni/.claude/frames\")",
+      "Bash(ffmpeg -i \"C:/Users/thibo/Projects/SkyHanni/modern-mc.mp4\" -vf \"fps=4,scale=640:360\" \"C:/Users/thibo/Projects/SkyHanni/.claude/frames/frame_%03d.png\" -y -loglevel quiet)",
+      "Bash(rm -f \"C:/Users/thibo/Projects/SkyHanni/.claude/frames\"/*.png)",
+      "Bash(ffmpeg -i \"C:/Users/thibo/Projects/SkyHanni/modern-mc.mp4\" -vf \"fps=30,scale=640:360\" \"C:/Users/thibo/Projects/SkyHanni/.claude/frames/frame_%03d.png\" -y -loglevel quiet)"
+    ]
+  }
+}

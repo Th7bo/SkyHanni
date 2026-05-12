@@ -35,6 +35,11 @@ class ForagingConfig {
     var moongladeBeacon = MoongladeBeaconConfig()
 
     @Expose
+    @ConfigOption(name = "Sea Lumies Highlight", desc = "Highlight Sea Lumies while foraging underwater on Galatea.")
+    @Accordion
+    var seaLumiesHighlight = SeaLumiesHighlightConfig()
+
+    @Expose
     @ConfigOption(name = "Foraging Tracker", desc = "")
     @Accordion
     val tracker = ForagingTrackerConfig()

@@ -25,6 +25,14 @@ import java.util.UUID
 object ContributorManager {
     private val config get() = SkyHanniMod.feature.dev
 
+    /** Merged into repo data; repo wins if the same UUID exists. */
+    private val additionalContributors: Map<String, ContributorJsonEntry> = mapOf(
+        "799f84fb-90a5-4f5a-b5dd-80aa543442c5" to ContributorJsonEntry(
+            suffix = "§b:)",
+            displayName = "Th7bo",
+        ),
+    )
+
     var contributors: Map<UUID, ContributorJsonEntry> = emptyMap()
         private set
     var contributorNames = emptyList<String>()
@@ -32,7 +40,10 @@ object ContributorManager {
 
     @HandleEvent
     fun onRepoReload(event: RepositoryReloadEvent) {
-        val map = event.getConstant<ContributorsJson>("ContributorList").contributors
+        val map = event.getConstant<ContributorsJson>("ContributorList").contributors.toMutableMap()
+        for ((uuid, entry) in additionalContributors) {
+            map.putIfAbsent(uuid, entry)
+        }
 
         contributors = map.mapKeysNotNull {
             try {
