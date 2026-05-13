@@ -9,7 +9,12 @@
       "Bash(mkdir -p \"C:/Users/thibo/Projects/SkyHanni/.claude/frames\")",
       "Bash(ffmpeg -i \"C:/Users/thibo/Projects/SkyHanni/modern-mc.mp4\" -vf \"fps=4,scale=640:360\" \"C:/Users/thibo/Projects/SkyHanni/.claude/frames/frame_%03d.png\" -y -loglevel quiet)",
       "Bash(rm -f \"C:/Users/thibo/Projects/SkyHanni/.claude/frames\"/*.png)",
-      "Bash(ffmpeg -i \"C:/Users/thibo/Projects/SkyHanni/modern-mc.mp4\" -vf \"fps=30,scale=640:360\" \"C:/Users/thibo/Projects/SkyHanni/.claude/frames/frame_%03d.png\" -y -loglevel quiet)"
+      "Bash(ffmpeg -i \"C:/Users/thibo/Projects/SkyHanni/modern-mc.mp4\" -vf \"fps=30,scale=640:360\" \"C:/Users/thibo/Projects/SkyHanni/.claude/frames/frame_%03d.png\" -y -loglevel quiet)",
+      "Bash(./gradlew :1.21.10:compileJava :1.21.10:compileKotlin)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Program Files/Eclipse Adoptium/**)",
+      "Bash(java -version)",
+      "Bash(./gradlew :1.21.11:processResources :1.21.11:classes)"
     ]
   }
 }

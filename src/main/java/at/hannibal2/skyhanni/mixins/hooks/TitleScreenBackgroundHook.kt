@@ -56,6 +56,22 @@ object TitleScreenBackgroundHook {
     }
 
     /**
+     * Drawn at the very start of `LoadingOverlay.render`, so the Mojang brand fill draws on top of the nebula.
+     * As the brand color crossfades during fade-out, the nebula behind it becomes visible — matching Phase 1
+     * of `modern-mc.mp4`. We draw at full opacity here; the brand fill alpha is what produces the cross-fade.
+     */
+    fun onLoadingOverlayRenderHead(context: GuiGraphics) {
+        if (!shouldActivateNebulaTitleBackground()) return
+
+        DrawContextUtils.setContext(context)
+        try {
+            NebulaTitleBackgroundRenderer.render()
+        } finally {
+            DrawContextUtils.clearContext()
+        }
+    }
+
+    /**
      * Called from `TitleScreen.init`. Minecraft also re-runs `init` on window resize, so we identity-compare
      * the screen instance to avoid replaying the fade when only the framebuffer changed.
      */

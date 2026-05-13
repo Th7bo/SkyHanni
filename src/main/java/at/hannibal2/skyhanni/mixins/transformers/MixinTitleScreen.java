@@ -15,4 +15,14 @@ public class MixinTitleScreen {
     private void skyhanni$titleNebulaBackground(GuiGraphics context, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         TitleScreenBackgroundHook.INSTANCE.onRenderBackgroundHead(context, ci);
     }
+
+    @Inject(method = "init()V", at = @At("HEAD"))
+    private void skyhanni$titleResetEntrance(CallbackInfo ci) {
+        TitleScreenBackgroundHook.INSTANCE.onTitleScreenInit((TitleScreen) (Object) this);
+    }
+
+    @Inject(method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V", at = @At("RETURN"))
+    private void skyhanni$titleEntranceFade(GuiGraphics context, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+        TitleScreenBackgroundHook.INSTANCE.onRenderTail(context);
+    }
 }
