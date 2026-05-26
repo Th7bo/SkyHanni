@@ -214,7 +214,7 @@ object VisualWordGui {
 
         val header = Renderable.text("§bEdit Replacement", scale = 1.2, horizontalAlign = HA.CENTER)
         val hint = Renderable.text(
-            "§8Tip: use \"&&\" to produce the §r§8Minecraft formatting character §r§8(e.g. &&aGreen)",
+            "§8Tip: \"&&e\" for Minecraft colors, §r§8\"&#RRGGBB\" for hex colors §r§8(e.g. &#FF5500)",
             scale = 0.8,
         )
 

@@ -5,10 +5,12 @@ import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.utils.chat.TextHelper.asComponent
 import at.hannibal2.skyhanni.utils.collection.TimeAndSizeLimitedCache
 import at.hannibal2.skyhanni.utils.compat.OrderedTextUtils.requiredStyleChangeString
+import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.FormattedText
 import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.TextColor
 import net.minecraft.util.FormattedCharSequence
 import net.minecraft.util.StringDecomposer
 import java.util.Optional
@@ -205,8 +207,10 @@ data class VisualWordText(
 ) {
 
     fun toVisualWord() = VisualWord(
-        from.toLegacyString().replace("§", "&&"),
-        to.toLegacyString().replace("§", "&&"),
+        if (from.isEmpty() && fromStyleOverride != null) serializeStyle(fromStyleOverride)
+        else from.toLegacyString().replace("§", "&&"),
+        if (to.isEmpty() && toStyleOverride != null) serializeStyle(toStyleOverride)
+        else to.toLegacyString().replace("§", "&&"),
         enabled,
         caseSensitive,
     )
@@ -214,8 +218,8 @@ data class VisualWordText(
     companion object {
 
         fun fromVisualWord(visualWord: VisualWord): VisualWordText {
-            val fromPhrase = visualWord.phrase.replace("&&", "§")
-            val toPhrase = visualWord.replacement.replace("&&", "§")
+            val fromPhrase = expandHexColors(visualWord.phrase.replace("&&", "§"))
+            val toPhrase = expandHexColors(visualWord.replacement.replace("&&", "§"))
             val fromChars = fromPhrase.toStyledCharacterList()
             val toChars = toPhrase.toStyledCharacterList()
             return VisualWordText(
@@ -228,6 +232,12 @@ data class VisualWordText(
             )
         }
 
+        /** Converts `&#RRGGBB` to Minecraft's legacy hex format `§x§R§R§G§G§B§B`. */
+        fun expandHexColors(text: String): String =
+            text.replace(Regex("&#([0-9A-Fa-f]{6})")) { match ->
+                "§x" + match.groupValues[1].uppercase().map { "§$it" }.joinToString("")
+            }
+
         private fun resolveStyle(code: String): Style? {
             if (code.isBlank()) return null
             var result: Style? = null
@@ -236,6 +246,15 @@ data class VisualWordText(
                 false
             }
             return result
+        }
+
+        private fun serializeStyle(style: Style): String {
+            val color = style.color ?: return ""
+            val legacy = ChatFormatting.entries.firstOrNull { cf ->
+                cf.isColor && TextColor.fromLegacyFormat(cf) == color
+            }
+            return if (legacy != null) "&&${legacy.char}"
+            else "&#%06X".format(color.value and 0xFFFFFF)
         }
     }
 }
