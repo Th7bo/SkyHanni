@@ -57,6 +57,14 @@ class RareDropAnimationConfig {
 
     @Expose
     @ConfigOption(
+        name = "Show Item Icon",
+        desc = "Render the item icon in the center of the screen during the animation. §8(Custom only)",
+    )
+    @ConfigEditorBoolean
+    var showItemIcon: Boolean = true
+
+    @Expose
+    @ConfigOption(
         name = "Show Item Name",
         desc = "Show the item name as text during the animation. §8(Custom only)",
     )

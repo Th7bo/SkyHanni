@@ -200,7 +200,7 @@ object RareDropAnimation {
         val centerY = screenH * 0.42f
 
         renderFlash(screenW, screenH, progress, alpha)
-        renderItem(item, centerX, centerY, progress, alpha)
+        if (config.showItemIcon) renderItem(item, centerX, centerY, progress, alpha)
         if (config.showItemName) renderItemName(centerX, centerY, alpha)
     }
 
