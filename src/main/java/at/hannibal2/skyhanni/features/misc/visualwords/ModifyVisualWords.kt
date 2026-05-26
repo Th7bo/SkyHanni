@@ -108,6 +108,16 @@ object ModifyVisualWords {
         for (word in finalWordsList) {
             if (!word.enabled) continue
 
+            if (word.from.isEmpty()) {
+                val fromColor = word.fromStyleOverride?.color ?: continue
+                val toColor = word.toStyleOverride?.color ?: continue
+                workingCharacters = workingCharacters.map { char ->
+                    if (char.style.color == fromColor) char.copy(style = char.style.withColor(toColor))
+                    else char
+                }.toMutableList()
+                continue
+            }
+
             val subResultList = mutableListOf<StyledCharacter>()
             val first = word.from.firstOrNull() ?: continue
             var index = 0
@@ -190,6 +200,8 @@ data class VisualWordText(
     val to: List<StyledCharacter>,
     val enabled: Boolean,
     val caseSensitive: Boolean,
+    val fromStyleOverride: Style? = null,
+    val toStyleOverride: Style? = null,
 ) {
 
     fun toVisualWord() = VisualWord(
@@ -201,12 +213,30 @@ data class VisualWordText(
 
     companion object {
 
-        fun fromVisualWord(visualWord: VisualWord) = VisualWordText(
-            visualWord.phrase.replace("&&", "§").toStyledCharacterList(),
-            visualWord.replacement.replace("&&", "§").toStyledCharacterList(),
-            visualWord.enabled,
-            visualWord.isCaseSensitive(),
-        )
+        fun fromVisualWord(visualWord: VisualWord): VisualWordText {
+            val fromPhrase = visualWord.phrase.replace("&&", "§")
+            val toPhrase = visualWord.replacement.replace("&&", "§")
+            val fromChars = fromPhrase.toStyledCharacterList()
+            val toChars = toPhrase.toStyledCharacterList()
+            return VisualWordText(
+                fromChars,
+                toChars,
+                visualWord.enabled,
+                visualWord.isCaseSensitive(),
+                fromStyleOverride = if (fromChars.isEmpty()) resolveStyle(fromPhrase) else null,
+                toStyleOverride = if (toChars.isEmpty()) resolveStyle(toPhrase) else null,
+            )
+        }
+
+        private fun resolveStyle(code: String): Style? {
+            if (code.isBlank()) return null
+            var result: Style? = null
+            StringDecomposer.iterateFormatted("$code ", Style.EMPTY) { _, style, _ ->
+                result = style
+                false
+            }
+            return result
+        }
     }
 }
 
