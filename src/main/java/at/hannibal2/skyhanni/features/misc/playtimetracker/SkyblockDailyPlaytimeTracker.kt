@@ -54,6 +54,13 @@ object SkyblockDailyPlaytimeTracker {
     fun secondsForCalendarDay(day: LocalDate): Long =
         storage()?.secondsByIsoDate?.get(day.toString()) ?: 0L
 
+    /** Returns the all-time highest single-day playtime in seconds together with the date it was achieved. */
+    fun computeAllTimeMax(): Pair<Long, LocalDate?> {
+        val stor = storage() ?: return 0L to null
+        val date = stor.allTimeMaxDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        return stor.allTimeMaxSeconds to date
+    }
+
     /** Short human-readable duration (hours/minutes preference). */
     fun formatSeconds(totalSeconds: Long): String =
         totalSeconds.seconds.format(biggestUnit = TimeUnit.HOUR, maxUnits = 2)
@@ -74,6 +81,22 @@ object SkyblockDailyPlaytimeTracker {
         val stor = storage() ?: return
         val todayIso = LocalDate.now().toString()
         stor.secondsByIsoDate.addOrPut(todayIso, 1L)
+
+        // One-time migration: initialize stored max from history for users upgrading from older versions.
+        if (stor.allTimeMaxSeconds == 0L && stor.secondsByIsoDate.isNotEmpty()) {
+            val best = stor.secondsByIsoDate.maxByOrNull { it.value }
+            if (best != null) {
+                stor.allTimeMaxSeconds = best.value
+                stor.allTimeMaxDate = best.key
+            }
+        }
+
+        val todayTotal = stor.secondsByIsoDate[todayIso] ?: 0L
+        if (todayTotal > stor.allTimeMaxSeconds) {
+            stor.allTimeMaxSeconds = todayTotal
+            stor.allTimeMaxDate = todayIso
+        }
+
         if (event.repeatSeconds(60)) {
             prune(stor)
         }
@@ -86,13 +109,16 @@ object SkyblockDailyPlaytimeTracker {
         val secs = storage()?.secondsByIsoDate?.get(today) ?: 0L
         val avg = computeRollingAverageDailySeconds(config.averageWindowDays.toInt().coerceIn(2, 90)).toLong()
         val window = config.averageWindowDays.toInt().coerceIn(2, 90)
-        val lines = Renderable.vertical(
-            listOf(
-                Renderable.text("§eSB play today: §f${formatSeconds(secs)}"),
-                Renderable.text("§eAvg §7(${window}d): §f${formatSeconds(avg)}"),
-            ),
-            spacing = 2,
-        )
+        val overlayLines = buildList {
+            add(Renderable.text("§eSB play today: §f${formatSeconds(secs)}"))
+            add(Renderable.text("§eAvg §7(${window}d): §f${formatSeconds(avg)}"))
+            if (config.showMaxPlaytime) {
+                val (maxSecs, maxDate) = computeAllTimeMax()
+                val dateSuffix = if (maxDate != null) " §7($maxDate)" else ""
+                add(Renderable.text("§eAll-time max: §f${formatSeconds(maxSecs)}$dateSuffix"))
+            }
+        }
+        val lines = Renderable.vertical(overlayLines, spacing = 2)
         config.overlayPosition.renderRenderable(lines, posLabel = "Daily SkyBlock playtime")
     }
 

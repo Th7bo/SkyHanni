@@ -40,7 +40,7 @@ class PlaytimeTrackerGui : SkyHanniBaseScreen() {
             d to secs
         }.sortedByDescending { it.first }
 
-        val innerTop = t + 64
+        val innerTop = t + 64 + (if (config.showMaxPlaytime) 11 else 0)
         val innerBottom = t + h - 6
         val viewportHeight = innerBottom - innerTop
         val contentHeight =
@@ -70,13 +70,24 @@ class PlaytimeTrackerGui : SkyHanniBaseScreen() {
                 yHeader,
                 -1,
             )
+            if (config.showMaxPlaytime) {
+                yHeader += 11
+                val (maxSecs, maxDate) = SkyblockDailyPlaytimeTracker.computeAllTimeMax()
+                val dateSuffix = if (maxDate != null) " §7($maxDate)" else ""
+                GuiRenderUtils.drawString(
+                    "§eAll-time max: §f${SkyblockDailyPlaytimeTracker.formatSeconds(maxSecs)}$dateSuffix",
+                    8,
+                    yHeader,
+                    -1,
+                )
+            }
 
-            GuiRenderUtils.drawRect(8, 56, w - 8, 57, 0x80404040.toInt())
+            GuiRenderUtils.drawRect(8, 56 + (if (config.showMaxPlaytime) 11 else 0), w - 8, 57 + (if (config.showMaxPlaytime) 11 else 0), 0x80404040.toInt())
 
             DrawContextUtils.translate(-l.toFloat(), -t.toFloat())
             GuiRenderUtils.enableScissor(l + 5, innerTop, l + w - 5, innerBottom)
             DrawContextUtils.translate(l.toFloat(), t.toFloat())
-            DrawContextUtils.translate(8f, (64 - scroll).toFloat())
+            DrawContextUtils.translate(8f, ((innerTop - t) - scroll).toFloat())
 
             if (sortedRows.isEmpty()) {
                 GuiRenderUtils.drawString("§7No history yet. Enable tracking and spend time in SkyBlock.", 0, 0, -1)
@@ -96,7 +107,7 @@ class PlaytimeTrackerGui : SkyHanniBaseScreen() {
 
     override fun onHandleMouseInput() {
         val t = height / 2 - h / 2
-        val innerTop = t + 64
+        val innerTop = t + 64 + (if (config.showMaxPlaytime) 11 else 0)
         val innerBottom = t + h - 6
         val viewportHeight = innerBottom - innerTop
         val stor = ProfileStorageData.playerSpecific?.skyblockDailyPlaytime

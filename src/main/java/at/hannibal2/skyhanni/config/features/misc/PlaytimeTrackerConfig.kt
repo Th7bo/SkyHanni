@@ -41,6 +41,14 @@ class PlaytimeTrackerConfig {
 
     @Expose
     @ConfigOption(
+        name = "Track All-Time Max",
+        desc = "Show the highest single-day SkyBlock playtime ever recorded in the HUD overlay and tracker GUI.\n§7Works with previously recorded data.",
+    )
+    @ConfigEditorBoolean
+    var showMaxPlaytime: Boolean = false
+
+    @Expose
+    @ConfigOption(
         name = "HUD Overlay",
         desc = "Show today's playtime and rolling average while in SkyBlock.",
     )

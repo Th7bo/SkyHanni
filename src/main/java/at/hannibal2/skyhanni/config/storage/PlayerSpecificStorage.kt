@@ -89,6 +89,14 @@ class PlayerSpecificStorage {
         /** Keys: ISO-local `yyyy-MM-dd`. Values: tracked seconds while in SkyBlock that day. */
         @Expose
         var secondsByIsoDate: MutableMap<String, Long> = mutableMapOf()
+
+        /** Persisted all-time best single-day seconds. Survives history pruning. 0 = uninitialized (migrated on first use). */
+        @Expose
+        var allTimeMaxSeconds: Long = 0L
+
+        /** ISO-local date of the all-time best day, for display only. May no longer be in [secondsByIsoDate]. */
+        @Expose
+        var allTimeMaxDate: String? = null
     }
 
     class LimboStats {
