@@ -40,10 +40,11 @@ object RareDropAnimation {
      * REGEX-TEST: §r§6§lRARE DROP! §r§fWither Cloak Sword
      * REGEX-TEST: §r§6§lRARE DROP! §r§5Tarantula Talisman §r§b(+100% ✯ Magic Find)
      * REGEX-TEST: §r§6§lRARE DROP! §r§6§lEnchanted Hay Bale x3 §r§b(+94.5☀)
+     * REGEX-TEST: §r§6§lRARE CROP! §r§6§lCropie §r§b(+39.5☀)
      */
     private val rareDropPattern by repoGroup.pattern(
         "raredrop",
-        "(?:§.)*RARE DROP! (?:§.)*(?<item>[^(§\n]+?)(?:\\s*x\\d+)?\\s*(?:(?:§.)*\\(.*)?$",
+        "(?:§.)*RARE (?:DROP|CROP)! (?:§.)*(?<item>[^(§\n]+?)(?:\\s*x\\d+)?\\s*(?:(?:§.)*\\(.*)?$",
     )
 
     /**
