@@ -39,10 +39,11 @@ object RareDropAnimation {
      * REGEX-TEST: §r§6§lRARE DROP! §r§6§lEnchanted Book §r§b(+208% ✯ Magic Find)
      * REGEX-TEST: §r§6§lRARE DROP! §r§fWither Cloak Sword
      * REGEX-TEST: §r§6§lRARE DROP! §r§5Tarantula Talisman §r§b(+100% ✯ Magic Find)
+     * REGEX-TEST: §r§6§lRARE DROP! §r§6§lEnchanted Hay Bale x3 §r§b(+94.5☀)
      */
     private val rareDropPattern by repoGroup.pattern(
         "raredrop",
-        "(?:§.)*RARE DROP! (?:§.)*(?<item>[^(§\n]+?)\\s*(?:(?:§.)*\\(.*)?$",
+        "(?:§.)*RARE DROP! (?:§.)*(?<item>[^(§\n]+?)(?:\\s*x\\d+)?\\s*(?:(?:§.)*\\(.*)?$",
     )
 
     /**
@@ -74,7 +75,7 @@ object RareDropAnimation {
         val message = event.message
 
         rareDropPattern.matchMatcher(message) {
-            val itemName = group("item").trim().removeColor()
+            val itemName = group("item").trim().removeColor().replace(Regex(" x\\d+$"), "")
             val internalName = NeuInternalName.fromItemNameOrNull(itemName) ?: return
             val itemStack = internalName.getItemStackOrNull() ?: return
             if (isSuppressed(itemStack, internalName)) return
