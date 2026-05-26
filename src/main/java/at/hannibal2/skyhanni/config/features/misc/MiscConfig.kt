@@ -456,6 +456,11 @@ class MiscConfig {
     val npcDayLimitTracker: NpcDayLimitTrackerConfig = NpcDayLimitTrackerConfig()
 
     @Expose
+    @ConfigOption(name = "Rare Drop Animation", desc = "")
+    @Accordion
+    val rareDropAnimation: RareDropAnimationConfig = RareDropAnimationConfig()
+
+    @Expose
     @ConfigOption(name = "Coral Fish Helper", desc = "Shows a helper for which fish are cheapest to buy for the NPC §dCoral§7.")
     @ConfigEditorBoolean
     @FeatureToggle
