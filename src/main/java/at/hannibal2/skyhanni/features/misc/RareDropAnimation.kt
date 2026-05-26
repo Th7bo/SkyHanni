@@ -3,6 +3,7 @@ package at.hannibal2.skyhanni.features.misc
 import at.hannibal2.skyhanni.SkyHanniMod
 import at.hannibal2.skyhanni.api.event.HandleEvent
 import at.hannibal2.skyhanni.config.ConfigFileType
+import at.hannibal2.skyhanni.config.features.misc.RareDropAnimationConfig.AnimationStyle
 import at.hannibal2.skyhanni.config.features.misc.RareDropAnimationConfig.IgnoreModeEntry
 import at.hannibal2.skyhanni.events.GuiRenderEvent
 import at.hannibal2.skyhanni.events.chat.SkyHanniChatEvent
@@ -139,12 +140,16 @@ object RareDropAnimation {
         rarity: LorenzRarity?,
         name: String,
     ) {
-        currentItem = item
-        currentRarity = rarity
-        currentItemName = name
-        animationStart = SimpleTimeMark.now()
         if (config.playSound) SoundUtils.plingSound.playSound()
         if (config.showIgnoreHint) sendIgnoreHint(internalName, rarity, name)
+        if (config.animationStyle == AnimationStyle.VANILLA) {
+            Minecraft.getInstance().gameRenderer.displayItemActivation(item)
+        } else {
+            currentItem = item
+            currentRarity = rarity
+            currentItemName = name
+            animationStart = SimpleTimeMark.now()
+        }
     }
 
     private fun sendIgnoreHint(internalName: NeuInternalName, rarity: LorenzRarity?, name: String) {
@@ -176,6 +181,7 @@ object RareDropAnimation {
     @HandleEvent(onlyOnSkyblock = true)
     fun onRenderOverlay(event: GuiRenderEvent.GuiOverlayRenderEvent) {
         if (!config.enabled) return
+        if (config.animationStyle == AnimationStyle.VANILLA) return
         val item = currentItem ?: return
         val duration = config.duration.toDouble().seconds
         val elapsed = animationStart.passedSince()

@@ -24,8 +24,25 @@ class RareDropAnimationConfig {
 
     @Expose
     @ConfigOption(
+        name = "Animation Style",
+        desc = "§eCustom§7: hand-crafted center-screen animation with configurable duration, scale, and flash.\n" +
+            "§eVanilla§7: the real totem-of-undying animation with particles.",
+    )
+    @ConfigEditorDropdown
+    var animationStyle: AnimationStyle = AnimationStyle.CUSTOM
+
+    enum class AnimationStyle(private val displayName: String) {
+        CUSTOM("Custom"),
+        VANILLA("Vanilla (Totem)"),
+        ;
+
+        override fun toString() = displayName
+    }
+
+    @Expose
+    @ConfigOption(
         name = "Animation Duration",
-        desc = "How long the animation plays, in seconds.",
+        desc = "How long the animation plays, in seconds. §8(Custom only)",
     )
     @ConfigEditorSlider(minValue = 1f, maxValue = 10f, minStep = 0.5f)
     var duration: Float = 3f
@@ -33,7 +50,7 @@ class RareDropAnimationConfig {
     @Expose
     @ConfigOption(
         name = "Item Scale",
-        desc = "How large the dropped item appears in the center of the screen.",
+        desc = "How large the dropped item appears in the center of the screen. §8(Custom only)",
     )
     @ConfigEditorSlider(minValue = 2f, maxValue = 10f, minStep = 1f)
     var itemScale: Float = 6f
@@ -41,7 +58,7 @@ class RareDropAnimationConfig {
     @Expose
     @ConfigOption(
         name = "Show Item Name",
-        desc = "Show the item name as text during the animation.",
+        desc = "Show the item name as text during the animation. §8(Custom only)",
     )
     @ConfigEditorBoolean
     var showItemName: Boolean = true
@@ -49,7 +66,7 @@ class RareDropAnimationConfig {
     @Expose
     @ConfigOption(
         name = "Show Background Flash",
-        desc = "Flash a rarity-colored background behind the item.",
+        desc = "Flash a rarity-colored background behind the item. §8(Custom only)",
     )
     @ConfigEditorBoolean
     var showFlash: Boolean = true
