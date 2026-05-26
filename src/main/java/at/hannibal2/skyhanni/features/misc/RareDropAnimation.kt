@@ -10,6 +10,8 @@ import at.hannibal2.skyhanni.events.chat.SkyHanniChatEvent
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.utils.ChatUtils
 import at.hannibal2.skyhanni.utils.GuiRenderUtils.renderOnScreen
+import at.hannibal2.skyhanni.utils.ItemPriceUtils.formatCoin
+import at.hannibal2.skyhanni.utils.ItemPriceUtils.getPriceOrNull
 import at.hannibal2.skyhanni.utils.ItemUtils.getItemCategoryOrNull
 import at.hannibal2.skyhanni.utils.ItemUtils.getItemRarityOrNull
 import at.hannibal2.skyhanni.utils.LorenzRarity
@@ -70,6 +72,7 @@ object RareDropAnimation {
     private var currentItem: ItemStack? = null
     private var currentRarity: LorenzRarity? = null
     private var currentItemName: String = ""
+    private var currentPrice: Double? = null
 
     @HandleEvent(onlyOnSkyblock = true)
     fun onChat(event: SkyHanniChatEvent.Allow) {
@@ -148,6 +151,7 @@ object RareDropAnimation {
             currentItem = item
             currentRarity = rarity
             currentItemName = name
+            currentPrice = internalName.getPriceOrNull()
             animationStart = SimpleTimeMark.now()
         }
     }
@@ -202,6 +206,7 @@ object RareDropAnimation {
         renderFlash(screenW, screenH, progress, alpha)
         if (config.showItemIcon) renderItem(item, centerX, centerY, progress, alpha)
         if (config.showItemName) renderItemName(centerX, centerY, alpha)
+        if (config.showItemPrice) renderItemPrice(centerX, centerY, alpha)
     }
 
     private fun renderFlash(screenW: Int, screenH: Int, progress: Float, alpha: Float) {
@@ -252,6 +257,34 @@ object RareDropAnimation {
             DrawContextUtils.drawContext.drawString(
                 fr,
                 displayName,
+                -(textWidth / 2),
+                0,
+                ARGB.color(textAlpha, 255, 255, 255),
+                true,
+            )
+        }
+    }
+
+    private fun renderItemPrice(centerX: Float, centerY: Float, alpha: Float) {
+        val price = currentPrice ?: return
+        if (price <= 0) return
+        val scale = config.itemScale.toDouble()
+        val halfSize = (8 * scale).toFloat()
+        val textScale = 1.8f
+        val fr = Minecraft.getInstance().font
+        val nameLineHeight = textScale * fr.lineHeight
+        val nameOffset = if (config.showItemName && currentItemName.isNotEmpty()) nameLineHeight else 0f
+        val textY = centerY + halfSize + 6f + nameOffset
+        val formatted = price.formatCoin()
+        val textAlpha = (alpha * 255).toInt().coerceIn(0, 255)
+
+        DrawContextUtils.pushPop {
+            DrawContextUtils.translate(centerX.toDouble(), textY.toDouble())
+            DrawContextUtils.scale(textScale, textScale)
+            val textWidth = fr.width(formatted)
+            DrawContextUtils.drawContext.drawString(
+                fr,
+                formatted,
                 -(textWidth / 2),
                 0,
                 ARGB.color(textAlpha, 255, 255, 255),

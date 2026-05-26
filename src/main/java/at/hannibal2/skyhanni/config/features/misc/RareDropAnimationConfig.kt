@@ -73,6 +73,14 @@ class RareDropAnimationConfig {
 
     @Expose
     @ConfigOption(
+        name = "Show Item Price",
+        desc = "Show the item's coin value below the name during the animation. §8(Custom only)",
+    )
+    @ConfigEditorBoolean
+    var showItemPrice: Boolean = true
+
+    @Expose
+    @ConfigOption(
         name = "Show Background Flash",
         desc = "Flash a rarity-colored background behind the item. §8(Custom only)",
     )
