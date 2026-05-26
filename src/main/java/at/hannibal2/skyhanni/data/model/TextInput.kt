@@ -131,7 +131,14 @@ open class TextInput {
             }
             if (KeyboardManager.isPastingKeysDown()) {
                 runBlocking {
-                    textBox = OSUtils.readFromClipboard()?.take(2024) ?: return@runBlocking
+                    val pasted = OSUtils.readFromClipboard()?.take(2024) ?: return@runBlocking
+                    val pos = carriage
+                    if (pos != null && pos >= 0) {
+                        textBox = textBox.insert(pos, pasted)
+                        carriage = (pos + pasted.length).takeIf { it < textBox.length }
+                    } else {
+                        textBox += pasted
+                    }
                     updated()
                 }
                 return
