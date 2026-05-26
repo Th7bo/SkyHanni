@@ -218,17 +218,17 @@ data class VisualWordText(
     companion object {
 
         fun fromVisualWord(visualWord: VisualWord): VisualWordText {
-            val fromPhrase = expandHexColors(visualWord.phrase.replace("&&", "§"))
-            val toPhrase = expandHexColors(visualWord.replacement.replace("&&", "§"))
-            val fromChars = fromPhrase.toStyledCharacterList()
-            val toChars = toPhrase.toStyledCharacterList()
+            val fromRaw = visualWord.phrase.replace("&&", "§")
+            val toRaw = visualWord.replacement.replace("&&", "§")
+            val fromChars = expandHexColors(fromRaw).toStyledCharacterList()
+            val toChars = expandHexColors(toRaw).toStyledCharacterList()
             return VisualWordText(
                 fromChars,
                 toChars,
                 visualWord.enabled,
                 visualWord.isCaseSensitive(),
-                fromStyleOverride = if (fromChars.isEmpty()) resolveStyle(fromPhrase) else null,
-                toStyleOverride = if (toChars.isEmpty()) resolveStyle(toPhrase) else null,
+                fromStyleOverride = if (fromChars.isEmpty()) resolveStyle(fromRaw) else null,
+                toStyleOverride = if (toChars.isEmpty()) resolveStyle(toRaw) else null,
             )
         }
 
@@ -238,8 +238,13 @@ data class VisualWordText(
                 "§x" + match.groupValues[1].uppercase().map { "§$it" }.joinToString("")
             }
 
+        private val HEX_COLOR_REGEX = Regex("^&#([0-9A-Fa-f]{6})$")
+
         private fun resolveStyle(code: String): Style? {
             if (code.isBlank()) return null
+            HEX_COLOR_REGEX.matchEntire(code.trim())?.let { m ->
+                return Style.EMPTY.withColor(TextColor.fromRgb(m.groupValues[1].toInt(16)))
+            }
             var result: Style? = null
             StringDecomposer.iterateFormatted("$code ", Style.EMPTY) { _, style, _ ->
                 result = style
