@@ -62,14 +62,15 @@ public abstract class MixinChatHud {
         //private void wrapRender(ChatComponent.ChatGraphicsAccess chatGraphicsAccess, int i, int j, boolean bl, Operation<Void> original) {
         ChromaFontManagerKt.setRenderingChat(true);
         ModifyVisualWords.INSTANCE.setChangeWords(false);
-
-        //? if < 1.21.11 {
-        original.call(context, currentTick, mouseX, mouseY, focused);
-        //?} else
-        //original.call(chatGraphicsAccess, i, j, bl);
-
-        ChromaFontManagerKt.setRenderingChat(false);
-        ModifyVisualWords.INSTANCE.setChangeWords(true);
+        try {
+            //? if < 1.21.11 {
+            original.call(context, currentTick, mouseX, mouseY, focused);
+            //?} else
+            //original.call(chatGraphicsAccess, i, j, bl);
+        } finally {
+            ChromaFontManagerKt.setRenderingChat(false);
+            ModifyVisualWords.INSTANCE.setChangeWords(true);
+        }
     }
 
 }

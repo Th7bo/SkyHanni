@@ -1,5 +1,6 @@
 package at.hannibal2.skyhanni.mixins.transformers;
 
+import at.hannibal2.skyhanni.mixins.hooks.VisualWordsHook;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.GuiMessage;
@@ -27,7 +28,8 @@ public abstract class MixinChatComponent {
         Operation<GuiMessage.Line> original,
         GuiMessage message
     ) {
-        GuiMessage.Line line = original.call(addedTime, content, tag, endOfEntry);
+        FormattedCharSequence transformedContent = VisualWordsHook.modifyOrderedText(content);
+        GuiMessage.Line line = original.call(addedTime, transformedContent, tag, endOfEntry);
         line.skyhanni$setMessageId(message.skyhanni$getMessageId());
         return line;
     }
