@@ -3,7 +3,16 @@
         "category": "neutral",
         "sounds": [
             {
-                "name": "itstimetopunchwheat",
+                "name": "skyhanni:itstimetopunchwheat",
+                "stream": false
+            }
+        ]
+    },
+    "easteregg.chomps": {
+        "category": "neutral",
+        "sounds": [
+            {
+                "name": "skyhanni:chomps",
                 "stream": false
             }
         ]

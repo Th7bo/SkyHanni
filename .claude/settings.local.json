@@ -14,7 +14,27 @@
       "Read(//c/Program Files/**)",
       "Read(//c/Program Files/Eclipse Adoptium/**)",
       "Bash(java -version)",
-      "Bash(./gradlew :1.21.11:processResources :1.21.11:classes)"
+      "Bash(./gradlew :1.21.11:processResources :1.21.11:classes)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\thibo\\\\Projects\\\\SkyHanni\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(./gradlew compileKotlin --quiet)",
+      "Bash(git fetch *)",
+      "Bash(git merge *)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(grep -E \"\\\\.\\(kt|java\\)$\")",
+      "Bash(./gradlew compileKotlin)",
+      "Bash(./gradlew -PnoGenSources compileKotlin)",
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(xargs grep -l \"WaypointFormat\\\\|clipboard.*waypoint\\\\|import.*waypoint\")",
+      "Bash(jar xf *)",
+      "Bash(javap -p -c net/minecraft/client/GuiMessage.class)",
+      "Bash(javap -p -c net/minecraft/client/gui/components/ComponentRenderUtils.class)",
+      "Bash(xargs grep -l \"playSound\\\\|SoundEvent\")",
+      "Bash(ffprobe -v quiet -show_streams -select_streams a \"C:/Users/thibo/Projects/SkyHanni/src/main/resources/assets/skyhanni/sounds/easteregg/chomps.ogg\")",
+      "Bash(ffprobe *)",
+      "Bash(grep -i -E \"skyhanni|\\\\.jar$\")"
     ]
   }
 }
