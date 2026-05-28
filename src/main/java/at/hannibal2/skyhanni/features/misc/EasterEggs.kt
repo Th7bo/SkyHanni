@@ -75,16 +75,4 @@ object EasterEggs {
         val alpha = (timeLeft / FADE_DURATION).toFloat().coerceIn(0f, 1f)
         GuiRenderUtils.drawTexturedRect(0f, 0f, olivemanTexture, alpha)
     }
-
-    @HandleEvent
-    fun onCommandRegistration(event: CommandRegistrationEvent) {
-        event.registerBrigadier("sheasteregg") {
-            description = "Test Easter egg triggers."
-            category = CommandCategory.DEVELOPER_TEST
-            literalCallback("divan") { divanReelPlayer.play(); ChatUtils.chat("Playing Divan reel.") }
-            literalCallback("fish") { fishImageShowUntil = SimpleTimeMark.now() + DISPLAY_DURATION; ChatUtils.chat("Showing oliveman.") }
-            literalCallback("godpot") { chompsSound.playSound(); ChatUtils.chat("Playing chomps.") }
-            simpleCallback { ChatUtils.userError("Usage: /sheasteregg <divan|fish|godpot>") }
-        }
-    }
 }
