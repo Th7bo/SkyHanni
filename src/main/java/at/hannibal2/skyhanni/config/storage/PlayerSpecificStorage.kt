@@ -117,4 +117,15 @@ class PlayerSpecificStorage {
 
     @Expose
     var slayerPersonalBests: MutableMap<BossType, Duration> = mutableMapOf()
+
+    @Expose
+    var easterEggs: EasterEggStorage = EasterEggStorage()
+
+    class EasterEggStorage {
+        @Expose
+        var seen: MutableSet<String> = mutableSetOf()
+
+        @Expose
+        var disabled: MutableSet<String> = mutableSetOf()
+    }
 }
