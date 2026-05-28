@@ -30,10 +30,14 @@ object TrophyFishMessages {
      * REGEX-TEST: §6♔ §r§6§lTROPHY FISH! §r§fYou caught a §r§fBlobfish §r§7§lSILVER§r§f!
      * REGEX-TEST: §6♔ §r§6§lTROPHY FISH! §r§fYou caught a §r§6Golden Fish §r§7§lSILVER§r§f!
      */
+    /**
+     * REGEX-TEST: §2♔ §r§2§lTROPHY FROG! §r§fYou caught an §r§aExploding Frog §r§7§lSILVER§r§f!
+     * REGEX-TEST: §2♔ §r§2§lTROPHY FROG! §r§fYou caught a §r§fCommon Frog §r§b§lDIAMOND§r§f!
+     */
     @Suppress("MaxLineLength")
     val trophyFishPattern by RepoPattern.pattern(
         "fishing.trophy.trophyfish",
-        "§6♔ §r§6§lTROPHY FISH! §r§fYou caught an? §r(?<displayName>§[0-9a-f](?:§k)?[\\w -]+) §r(?<displayRarity>§[0-9a-f]§l\\w+)§r§f!",
+        "§[26]♔ §r§[26]§lTROPHY (?:FISH|FROG)! §r§fYou caught an? §r(?<displayName>§[0-9a-f](?:§k)?[\\w -]+) §r(?<displayRarity>§[0-9a-f]§l\\w+)§r§f!",
     )
 
     @HandleEvent(onlyOnSkyblock = true)
