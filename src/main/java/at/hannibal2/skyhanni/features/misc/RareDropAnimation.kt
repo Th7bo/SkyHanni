@@ -16,7 +16,9 @@ import at.hannibal2.skyhanni.utils.ItemUtils.getItemCategoryOrNull
 import at.hannibal2.skyhanni.utils.ItemUtils.getItemRarityOrNull
 import at.hannibal2.skyhanni.utils.LorenzRarity
 import at.hannibal2.skyhanni.utils.NeuInternalName
+import at.hannibal2.skyhanni.utils.NeuInternalName.Companion.toInternalName
 import at.hannibal2.skyhanni.utils.NeuItems.getItemStackOrNull
+import at.hannibal2.skyhanni.utils.NumberUtil.romanToDecimalIfNecessaryOrNull
 import at.hannibal2.skyhanni.utils.PetUtils
 import at.hannibal2.skyhanni.utils.RegexUtils.matchMatcher
 import at.hannibal2.skyhanni.utils.SimpleTimeMark
@@ -67,6 +69,16 @@ object RareDropAnimation {
     )
 
     /**
+     * REGEX-TEST: ◆ Pestilence Rune I
+     * REGEX-TEST: ◆ Endersnake Rune I
+     * REGEX-TEST: ◆ End Rune I
+     */
+    private val runePattern by repoGroup.pattern(
+        "rune",
+        "◆ (?<name>.+) Rune (?<tier>[IVXLCDM]+)",
+    )
+
+    /**
      * REGEX-TEST: §6§lPET DROP! §r§5Baby Yeti §r§b(+168% ✯ Magic Find)
      * REGEX-TEST: §6§lPET DROP! §r§6Rat
      */
@@ -107,7 +119,7 @@ object RareDropAnimation {
 
         parenthesizedDropPattern.matchMatcher(message) {
             val itemName = group("item").trim().removeColor()
-            val internalName = NeuInternalName.fromItemNameOrNull(itemName) ?: return
+            val internalName = resolveDropInternalName(itemName) ?: return
             val itemStack = internalName.getItemStackOrNull() ?: return
             if (isSuppressed(itemStack, internalName)) return
             val rarity = itemStack.getItemRarityOrNull()
@@ -137,6 +149,19 @@ object RareDropAnimation {
                 triggerAnimation(itemStack, internalName, rarity, petName)
             }
         }
+    }
+
+    private fun resolveDropInternalName(itemName: String): NeuInternalName? {
+        NeuInternalName.fromItemNameOrNull(itemName)?.let { return it }
+        // Runes drop with a "◆ " symbol and a roman tier (e.g. "◆ Pestilence Rune I") which the
+        // generic name resolver can't handle, so build the "<NAME>_RUNE;<tier>" internal name manually.
+        runePattern.matchMatcher(itemName) {
+            val runeName = group("name").trim().replace(" ", "_").uppercase()
+            val tier = group("tier").romanToDecimalIfNecessaryOrNull() ?: return@matchMatcher
+            val internalName = "${runeName}_RUNE;$tier".toInternalName()
+            if (internalName.getItemStackOrNull() != null) return internalName
+        }
+        return null
     }
 
     private fun resolvePetStack(petName: String, rarity: LorenzRarity?): Pair<ItemStack, NeuInternalName>? {
