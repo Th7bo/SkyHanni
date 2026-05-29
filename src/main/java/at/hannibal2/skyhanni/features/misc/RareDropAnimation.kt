@@ -52,6 +52,21 @@ object RareDropAnimation {
     )
 
     /**
+     * REGEX-TEST: §b§lRARE DROP! §r§7(§r§f§r§72x §r§f§r§9Foul Flesh§r§7) §r§b(+158% §r§b✯ Magic Find§r§b)
+     * REGEX-TEST: §b§lRARE DROP! §r§7(§r§f§r§9Revenant Viscera§r§7) §r§b(+158% §r§b✯ Magic Find§r§b)
+     * REGEX-TEST: §9§lVERY RARE DROP!  §r§7(§r§f§r§5Revenant Catalyst§r§7) §r§b(+158% ✯ Magic Find)
+     * REGEX-TEST: §d§lCRAZY RARE DROP!  §r§7(§r§f§r§fPocket Espresso Machine§r§7) §r§b(+158% ✯ Magic Find)
+     * REGEX-TEST: VERY RARE DROP! (Revenant Shard) (+158% ✯ Magic Find)
+     * REGEX-TEST: CRAZY RARE DROP! (Smite VI) (+158% ✯ Magic Find)
+     * REGEX-TEST: INSANE RARE DROP! (Judgement Core) (+158% ✯ Magic Find)
+     * REGEX-TEST: §5§lPRAY TO RNGESUS DROP!  §r§7(§r§f§r§5Warden Heart§r§7) §r§b(+158% ✯ Magic Find)
+     */
+    private val parenthesizedDropPattern by repoGroup.pattern(
+        "raredrop.parenthesized",
+        "(?:§.)*(?:(?:VERY |CRAZY |INSANE )?RARE|PRAY TO RNGESUS) DROP! +(?:§.)*\\((?:§.)*(?:\\d+x )?(?:§.)*(?<item>[^§()\n]+?)\\s*(?:§.)*\\).*",
+    )
+
+    /**
      * REGEX-TEST: §6§lPET DROP! §r§5Baby Yeti §r§b(+168% ✯ Magic Find)
      * REGEX-TEST: §6§lPET DROP! §r§6Rat
      */
@@ -82,6 +97,16 @@ object RareDropAnimation {
 
         rareDropPattern.matchMatcher(message) {
             val itemName = group("item").trim().removeColor().replace(Regex(" x\\d+$"), "")
+            val internalName = NeuInternalName.fromItemNameOrNull(itemName) ?: return
+            val itemStack = internalName.getItemStackOrNull() ?: return
+            if (isSuppressed(itemStack, internalName)) return
+            val rarity = itemStack.getItemRarityOrNull()
+            triggerAnimation(itemStack, internalName, rarity, itemName)
+            return
+        }
+
+        parenthesizedDropPattern.matchMatcher(message) {
+            val itemName = group("item").trim().removeColor()
             val internalName = NeuInternalName.fromItemNameOrNull(itemName) ?: return
             val itemStack = internalName.getItemStackOrNull() ?: return
             if (isSuppressed(itemStack, internalName)) return
