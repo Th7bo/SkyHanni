@@ -11,6 +11,7 @@ import at.hannibal2.skyhanni.features.fishing.trophy.TrophyFishManager.getToolti
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.utils.NumberUtil.addSeparators
 import at.hannibal2.skyhanni.utils.NumberUtil.ordinal
+import at.hannibal2.skyhanni.utils.PlayerUtils
 import at.hannibal2.skyhanni.utils.RegexUtils.matchMatcher
 import at.hannibal2.skyhanni.utils.SoundUtils
 import at.hannibal2.skyhanni.utils.StringUtils.removeColor
@@ -30,21 +31,41 @@ object TrophyFishMessages {
      * REGEX-TEST: §6♔ §r§6§lTROPHY FISH! §r§fYou caught a §r§fBlobfish §r§7§lSILVER§r§f!
      * REGEX-TEST: §6♔ §r§6§lTROPHY FISH! §r§fYou caught a §r§6Golden Fish §r§7§lSILVER§r§f!
      */
+    @Suppress("MaxLineLength")
+    val trophyFishPattern by RepoPattern.pattern(
+        "fishing.trophy.trophyfish",
+        "§6♔ §r§6§lTROPHY FISH! §r§fYou caught an? §r(?<displayName>§[0-9a-f](?:§k)?[\\w -]+) §r(?<displayRarity>§[0-9a-f]§l\\w+)§r§f!",
+    )
+
     /**
+     * Personal trophy frog catch (every catch except the first DIAMOND).
      * REGEX-TEST: §2♔ §r§2§lTROPHY FROG! §r§fYou caught an §r§aExploding Frog §r§7§lSILVER§r§f!
      * REGEX-TEST: §2♔ §r§2§lTROPHY FROG! §r§fYou caught a §r§fCommon Frog §r§b§lDIAMOND§r§f!
      */
     @Suppress("MaxLineLength")
-    val trophyFishPattern by RepoPattern.pattern(
-        "fishing.trophy.trophyfish",
-        "§[26]♔ §r§[26]§lTROPHY (?:FISH|FROG)! §r§fYou caught an? §r(?<displayName>§[0-9a-f](?:§k)?[\\w -]+) §r(?<displayRarity>§[0-9a-f]§l\\w+)§r§f!",
+    val trophyFrogPattern by RepoPattern.pattern(
+        "fishing.trophy.trophyfrog",
+        "§2♔ §r§2§lTROPHY FROG! §r§fYou caught an? §r(?<displayName>§[0-9a-f](?:§k)?[\\w -]+) §r(?<displayRarity>§[0-9a-f]§l\\w+)§r§f!",
+    )
+
+    /**
+     * Global broadcast on first DIAMOND frog catch (no personal message in that case).
+     * REGEX-TEST: §2§lRIBBIT! §r§7§r§b[MVP§r§a+§r§b] Th7bo§r§f§r§e caught their first §r§b§lDIAMOND §r§fCommon Frog§r§e!
+     * REGEX-TEST: §2§lRIBBIT! §r§7§r§b[MVP§r§9+§r§b] TTC_cure§r§f§r§e caught their first §r§b§lDIAMOND §r§fCommon Frog§r§e!
+     */
+    val trophyFrogFirstCatchPattern by RepoPattern.pattern(
+        "fishing.trophy.trophyfrog.firstcatch",
+        "(?:§.)*RIBBIT! .*?(?<playerName>\\w+)§r(?:§.)+ caught their first (?:§.)+(?<displayRarity>\\w+) (?:§.)+(?<displayName>[\\w ]+?)§r(?:§.)+!",
     )
 
     @HandleEvent(onlyOnSkyblock = true)
     fun onChat(event: SkyHanniChatEvent.Allow) {
-        val (displayName, displayRarity) = trophyFishPattern.matchMatcher(event.message) {
-            group("displayName").replace("§k", "") to group("displayRarity")
-        } ?: return
+        val (displayName, displayRarity) =
+            trophyFishPattern.matchMatcher(event.message) {
+                group("displayName").replace("§k", "") to group("displayRarity")
+            } ?: trophyFrogPattern.matchMatcher(event.message) {
+                group("displayName").replace("§k", "") to group("displayRarity")
+            } ?: return
 
         val internalName = TrophyFishApi.getInternalName(displayName)
         val rarity = TrophyRarity.getByName(displayRarity.lowercase().removeColor()) ?: return
@@ -60,6 +81,16 @@ object TrophyFishMessages {
         }
 
         if (config.duplicateHider) event.chatLineId = (internalName + rarity).hashCode()
+    }
+
+    @HandleEvent(onlyOnSkyblock = true)
+    fun onFrogFirstCatchChat(event: SkyHanniChatEvent.Allow) {
+        trophyFrogFirstCatchPattern.matchMatcher(event.message) {
+            if (group("playerName") != PlayerUtils.getName()) return
+            val rarity = TrophyRarity.getByName(group("displayRarity").lowercase()) ?: return
+            val internalName = TrophyFishApi.getInternalName(group("displayName"))
+            TrophyFishCaughtEvent(internalName, rarity).post()
+        }
     }
 
     @HandleEvent(onlyOnSkyblock = true)

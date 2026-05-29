@@ -67,9 +67,10 @@ object EasterEggs {
     private var ACTIVE_IMAGE = ImageType.INACTIVE
 
     private fun trigger(egg: EasterEgg, action: () -> Unit) {
-        val storage = ProfileStorageData.playerSpecific?.easterEggs ?: return
-        if (egg.name in storage.disabled) return
+        val storage = ProfileStorageData.playerSpecific?.easterEggs
+        if (storage != null && egg.name in storage.disabled) return
         action()
+        if (storage == null) return
         if (storage.seen.add(egg.name)) return
         ChatUtils.clickableChat(
             "§eClick here to disable this easter egg.",
@@ -134,7 +135,16 @@ object EasterEggs {
             literalCallback("fish") { showUntil = SimpleTimeMark.now() + DISPLAY_DURATION; ACTIVE_IMAGE = ImageType.OLIVEMAN; ChatUtils.chat("Showing oliveman.") }
             literalCallback("pizza") { showUntil = SimpleTimeMark.now() + DISPLAY_DURATION; ACTIVE_IMAGE = ImageType.PIZZAMAN; ChatUtils.chat("Showing pizzaman.") }
             literalCallback("godpot") { chompsSound.playSound(); ChatUtils.chat("Playing chomps.") }
-            simpleCallback { ChatUtils.userError("Usage: /sheasteregg <divan|fish|godpot>") }
+            literalCallback("reset") {
+                val storage = ProfileStorageData.playerSpecific?.easterEggs
+                if (storage == null) ChatUtils.userError("Player storage not loaded yet.")
+                else {
+                    storage.seen.clear()
+                    storage.disabled.clear()
+                    ChatUtils.chat("Easter egg seen/disabled state cleared.")
+                }
+            }
+            simpleCallback { ChatUtils.userError("Usage: /sheasteregg <divan|fish|pizza|godpot|reset>") }
         }
     }
 }
