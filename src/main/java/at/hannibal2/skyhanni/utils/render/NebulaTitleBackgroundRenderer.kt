@@ -101,11 +101,7 @@ object NebulaTitleBackgroundRenderer {
                 Matrix4f().setTranslation(0.0f, 0.0f, -11000.0f),
                 Vector4f(1.0F, 1.0F, 1.0F, 1.0F),
                 Vector3f(),
-                //? if < 1.21.11 {
-                RenderSystem.getTextureMatrix(),
-                RenderSystem.getShaderLineWidth(),
-                //?} else
-                //Matrix4f(),
+                Matrix4f()
             )
             val pal = SkyHanniMod.feature.gui.titleScreen.nebulaPalette
             val nebulaSlice = nebulaUniform.writeWith(

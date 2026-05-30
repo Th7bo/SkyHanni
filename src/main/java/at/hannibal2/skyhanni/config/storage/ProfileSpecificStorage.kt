@@ -1,4 +1,4 @@
-package at.hannibal2.skyhanni.config.storage
+﻿package at.hannibal2.skyhanni.config.storage
 
 import at.hannibal2.skyhanni.api.HotmApi.PowderType
 import at.hannibal2.skyhanni.api.SkillApi
@@ -50,6 +50,7 @@ import at.hannibal2.skyhanni.features.inventory.chocolatefactory.stray.CFStrayTr
 import at.hannibal2.skyhanni.features.inventory.experimentationtable.ExperimentsProfitTracker
 import at.hannibal2.skyhanni.features.inventory.wardrobe.WardrobeApi.WardrobeData
 import at.hannibal2.skyhanni.features.mining.DarkMonolithFeatures
+import at.hannibal2.skyhanni.features.mining.ForgeDisplay
 import at.hannibal2.skyhanni.features.mining.MineshaftPityDisplay.PityData
 import at.hannibal2.skyhanni.features.mining.crystalhollows.CrystalNucleusTracker
 import at.hannibal2.skyhanni.features.mining.fossilexcavator.ExcavatorProfitTracker
@@ -807,6 +808,9 @@ class ProfileSpecificStorage(
 
         @Expose
         var darkMonolithTracker: DarkMonolithFeatures.Data = DarkMonolithFeatures.Data()
+
+        @Expose
+        var forgeSlots: MutableMap<Int, ForgeDisplay.ForgeProcess> = mutableMapOf()
     }
 
     @Expose

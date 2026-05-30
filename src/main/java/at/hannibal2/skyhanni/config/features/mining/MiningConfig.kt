@@ -1,4 +1,4 @@
-package at.hannibal2.skyhanni.config.features.mining
+﻿package at.hannibal2.skyhanni.config.features.mining
 
 import at.hannibal2.skyhanni.config.FeatureToggle
 import at.hannibal2.skyhanni.config.features.mining.caverns.DeepCavernsGuideConfig
@@ -125,6 +125,11 @@ class MiningConfig {
     val flowstateHelper: FlowstateHelperConfig = FlowstateHelperConfig()
 
     @Expose
+    @ConfigOption(name = "Forge Display", desc = "")
+    @Accordion
+    val forgeDisplay: ForgeDisplayConfig = ForgeDisplayConfig()
+
+    @Expose
     @ConfigOption(name = "Gemstone Money per Hour Display", desc = "")
     @Accordion
     val gemstoneMoneyPerHour: GemstoneMoneyPerHourConfig = GemstoneMoneyPerHourConfig()
@@ -153,7 +158,7 @@ class MiningConfig {
     @Expose
     @ConfigOption(
         name = "Line to your Golden Goblin",
-        desc = "Also makes a line to your goblin. §eNeeds the option above to work.",
+        desc = "Also makes a line to your goblin. Â§eNeeds the option above to work.",
     )
     @ConfigEditorBoolean
     var lineToYourGoldenGoblin: Boolean = false
