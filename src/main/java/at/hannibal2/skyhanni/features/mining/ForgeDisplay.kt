@@ -62,7 +62,7 @@ object ForgeDisplay {
                 val time = timeRemainingPattern.matchMatcher(line.removeColor()) {
                     group("time")
                 } ?: continue
-                val duration = getDurationOrNull(time) ?: continue
+                val duration = runCatching { getDurationOrNull(time) }.getOrNull() ?: continue
                 newSlots[slot] = ForgeProcess(internalName, now() + duration)
                 break
             }
