@@ -15,6 +15,16 @@ object TitleScreenBackgroundHook {
     private var lastSeenInstance: TitleScreen? = null
 
     /**
+     * The nebula [RenderPipeline][net.minecraft.client.renderer.RenderPipelines] resolves its shader source from
+     * `ShaderManager` the first time it is compiled. On the very first launch the `LoadingOverlay` (Mojang splash)
+     * renders *while the initial resource reload is still running*, so the shader sources are not loaded yet — compiling
+     * the pipeline then fails ("Couldn't find source for ... shader (skyhanni:nebula_title)") and the GPU device caches
+     * it as permanently invalid, leaving a black screen forever after. We therefore refuse to touch the pipeline until
+     * the first [TitleScreen.init], which only happens once the initial reload (and thus shader loading) has completed.
+     */
+    private var initialResourcesLoaded = false
+
+    /**
      * The title panorama is drawn from `PanoramaRenderer.render` (Mojmap; Yarn: RotatingCubeMapRenderer), not only from `TitleScreen.renderBackground`.
      * When the nebula is enabled we suppress the cube-map pass so cancelling the title background hook is visible.
      */
@@ -61,6 +71,8 @@ object TitleScreenBackgroundHook {
      * of `modern-mc.mp4`. We draw at full opacity here; the brand fill alpha is what produces the cross-fade.
      */
     fun onLoadingOverlayRenderHead(context: GuiGraphicsExtractor) {
+        // Never compile the pipeline before shaders are loaded (see [initialResourcesLoaded]).
+        if (!initialResourcesLoaded) return
         if (!shouldActivateNebulaTitleBackground()) return
 
         DrawContextUtils.setContext(context)
@@ -76,6 +88,8 @@ object TitleScreenBackgroundHook {
      * the screen instance to avoid replaying the fade when only the framebuffer changed.
      */
     fun onTitleScreenInit(screen: TitleScreen) {
+        // Reaching the title screen guarantees the initial resource reload (and shader loading) has finished.
+        initialResourcesLoaded = true
         if (lastSeenInstance === screen) return
         lastSeenInstance = screen
         NebulaTitleBackgroundRenderer.resetEntranceClock()
