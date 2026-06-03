@@ -1,10 +1,8 @@
 package at.hannibal2.skyhanni.mixins.transformers;
 
-import at.hannibal2.skyhanni.SkyHanniMod;
 import at.hannibal2.skyhanni.mixins.hooks.TitleScreenBackgroundHook;
 import at.hannibal2.skyhanni.utils.system.PlatformUtils;
-import kotlin.Unit;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.LogoRenderer;
 import net.minecraft.client.gui.screens.TitleScreen;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,8 +25,9 @@ public abstract class MixinTitleScreen {
         skyhanni$hasInited = true;
     }
 
-    @Inject(method = "renderBackground(Lnet/minecraft/client/gui/GuiGraphics;IIF)V", at = @At("HEAD"), cancellable = true)
-    private void skyhanni$titleNebulaBackground(GuiGraphics context, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+    //~ if < 26.1 'extractBackground' -> 'renderBackground'
+    @Inject(method = "extractBackground(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V", at = @At("HEAD"), cancellable = true)
+    private void skyhanni$titleNebulaBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         TitleScreenBackgroundHook.INSTANCE.onRenderBackgroundHead(context, ci);
     }
 
@@ -37,8 +36,9 @@ public abstract class MixinTitleScreen {
         TitleScreenBackgroundHook.INSTANCE.onTitleScreenInit((TitleScreen) (Object) this);
     }
 
-    @Inject(method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V", at = @At("RETURN"))
-    private void skyhanni$titleEntranceFade(GuiGraphics context, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+    //~ if < 26.1 'extractRenderState' -> 'render'
+    @Inject(method = "extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V", at = @At("RETURN"))
+    private void skyhanni$titleEntranceFade(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         TitleScreenBackgroundHook.INSTANCE.onRenderTail(context);
     }
 }

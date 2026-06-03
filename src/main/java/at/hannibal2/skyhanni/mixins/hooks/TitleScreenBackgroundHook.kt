@@ -5,7 +5,7 @@ import at.hannibal2.skyhanni.utils.compat.DrawContextUtils
 import at.hannibal2.skyhanni.utils.render.NebulaTitleBackgroundRenderer
 import at.hannibal2.skyhanni.utils.system.PlatformUtils
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.TitleScreen
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
@@ -32,7 +32,7 @@ object TitleScreenBackgroundHook {
         return true
     }
 
-    fun onRenderBackgroundHead(context: GuiGraphics, ci: CallbackInfo) {
+    fun onRenderBackgroundHead(context: GuiGraphicsExtractor, ci: CallbackInfo) {
         if (!shouldActivateNebulaTitleBackground()) return
 
         DrawContextUtils.setContext(context)
@@ -44,7 +44,7 @@ object TitleScreenBackgroundHook {
         }
     }
 
-    fun onRenderTail(context: GuiGraphics) {
+    fun onRenderTail(context: GuiGraphicsExtractor) {
         if (!shouldActivateNebulaTitleBackground()) return
 
         DrawContextUtils.setContext(context)
@@ -60,7 +60,7 @@ object TitleScreenBackgroundHook {
      * As the brand color crossfades during fade-out, the nebula behind it becomes visible — matching Phase 1
      * of `modern-mc.mp4`. We draw at full opacity here; the brand fill alpha is what produces the cross-fade.
      */
-    fun onLoadingOverlayRenderHead(context: GuiGraphics) {
+    fun onLoadingOverlayRenderHead(context: GuiGraphicsExtractor) {
         if (!shouldActivateNebulaTitleBackground()) return
 
         DrawContextUtils.setContext(context)

@@ -7,7 +7,7 @@ import com.mojang.blaze3d.ProjectionType
 import com.mojang.blaze3d.systems.RenderSystem
 import io.github.notenoughupdates.moulconfig.ChromaColour
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.CachedOrthoProjectionMatrixBuffer
+import net.minecraft.client.renderer.ProjectionMatrixBuffer
 import org.joml.Matrix3x2f
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -17,11 +17,13 @@ object NebulaTitleBackgroundRenderer {
 
     private const val ENTRANCE_FADE_SECONDS = 0.4f
 
-    private val projectionMatrix = CachedOrthoProjectionMatrixBuffer(
+    private val projectionMatrix = ProjectionMatrixBuffer(
         "SkyHanni Nebula Title",
-        1000.0f,
+        //? if < 26.1 {
+        /*1000.0f,
         11000.0f,
         true,
+        *///?}
     )
 
     private val nebulaUniform = SkyHanniNebulaTitleUniform()
@@ -94,7 +96,8 @@ object NebulaTitleBackgroundRenderer {
 
             RenderSystem.backupProjectionMatrix()
             RenderSystem.setProjectionMatrix(
-                projectionMatrix.getBuffer(scaledW, scaledH),
+                //~ if < 26.1 'Matrix4f().setOrtho(0f, scaledW, scaledH, 0f, 1000f, 11000f)' -> 'scaledW, scaledH'
+                projectionMatrix.getBuffer(Matrix4f().setOrtho(0f, scaledW, scaledH, 0f, 1000f, 11000f)),
                 ProjectionType.ORTHOGRAPHIC,
             )
             val dynamicTransforms = RenderSystem.getDynamicUniforms().writeTransform(

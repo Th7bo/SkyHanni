@@ -195,7 +195,6 @@ enum class SkyHanniRenderPipeline(
         vertexShaderPath = "nebula_title",
         uniforms = mapOf("SkyHanniNebulaTitleUniforms" to UniformType.UNIFORM_BUFFER),
         depthWrite = false,
-        depthTestFunction = DepthTestFunction.NO_DEPTH_TEST,
     ),
     ;
 

@@ -305,7 +305,7 @@ object RareDropAnimation {
             DrawContextUtils.translate(centerX.toDouble(), textY.toDouble())
             DrawContextUtils.scale(textScale, textScale)
             val textWidth = fr.width(displayName)
-            DrawContextUtils.drawContext.drawString(
+            DrawContextUtils.drawContext.text(
                 fr,
                 displayName,
                 -(textWidth / 2),
@@ -333,7 +333,7 @@ object RareDropAnimation {
             DrawContextUtils.translate(centerX.toDouble(), textY.toDouble())
             DrawContextUtils.scale(textScale, textScale)
             val textWidth = fr.width(formatted)
-            DrawContextUtils.drawContext.drawString(
+            DrawContextUtils.drawContext.text(
                 fr,
                 formatted,
                 -(textWidth / 2),
