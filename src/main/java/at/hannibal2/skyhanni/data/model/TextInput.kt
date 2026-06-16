@@ -66,6 +66,10 @@ open class TextInput {
     companion object {
         private var activeInstance: TextInput? = null
 
+        // Locks pasting until the paste keys are released, so holding the shortcut
+        // for multiple frames does not insert the clipboard contents repeatedly.
+        private var pasteLocked = false
+
         fun isActive() = activeInstance != null
 
         fun activate(instance: TextInput) {
@@ -130,6 +134,8 @@ open class TextInput {
                 return
             }
             if (KeyboardManager.isPastingKeysDown()) {
+                if (pasteLocked) return
+                pasteLocked = true
                 runBlocking {
                     val pasted = OSUtils.readFromClipboard()?.take(2024) ?: return@runBlocking
                     val pos = carriage
@@ -143,6 +149,7 @@ open class TextInput {
                 }
                 return
             }
+            pasteLocked = false
             val carriage = carriage
 
             if (GLFW.GLFW_KEY_LEFT.isKeyClicked()) {
