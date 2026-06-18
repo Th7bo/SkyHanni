@@ -12,6 +12,7 @@ import at.hannibal2.skyhanni.events.RepositoryReloadEvent
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.utils.ChatUtils
 import at.hannibal2.skyhanni.utils.InventoryUtils
+import at.hannibal2.skyhanni.utils.OSUtils
 import at.hannibal2.skyhanni.utils.ItemUtils.getInternalName
 import at.hannibal2.skyhanni.utils.KeyboardManager.isKeyHeld
 import at.hannibal2.skyhanni.utils.SafeItemStack
@@ -26,6 +27,8 @@ object WikiManager {
     lateinit var data: WikiJson
         private set
 
+    private const val MINECRAFT_WIKI_URL = "https://hypixelskyblock.minecraft.wiki/"
+
     private val config get() = SkyHanniMod.feature.misc.commands.betterWiki
 
     @HandleEvent
@@ -37,18 +40,19 @@ object WikiManager {
 
     @HandleEvent(onlyOnSkyblock = true)
     fun onMessageSendToServer(event: MessageSendToServerEvent) {
-        if (!isEnabled()) return
         val message = event.message.lowercase()
         if (!(message.startsWith("/wiki"))) return
 
         event.cancel()
         if (message == "/wiki") {
-            sendWikiMessage()
+            OSUtils.openBrowser(MINECRAFT_WIKI_URL)
+            ChatUtils.chat("Opening the §6SkyBlock Wiki §7in your browser.")
             return
         }
         if (message.startsWith("/wiki ")) {
             val search = event.message.drop("/wiki ".length)
-            sendWikiMessage(search)
+            OSUtils.openBrowser(MINECRAFT_WIKI_URL + "?search=" + URLEncoder.encode(search, "UTF-8"))
+            ChatUtils.chat("Searching for §a$search §7on the §6SkyBlock Wiki§7.")
             return
         }
         if (message == ("/wikithis")) {
@@ -161,7 +165,5 @@ object WikiManager {
     fun onRepoReload(event: RepositoryReloadEvent) {
         data = event.getConstant<WikiJson>("misc/Wiki")
     }
-
-    private fun isEnabled() = config.enabled
 
 }
