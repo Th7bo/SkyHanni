@@ -16,5 +16,14 @@
                 "stream": false
             }
         ]
+    },
+    "easteregg.holyass": {
+        "category": "neutral",
+        "sounds": [
+            {
+                "name": "skyhanni:holyass",
+                "stream": false
+            }
+        ]
     }
 }
