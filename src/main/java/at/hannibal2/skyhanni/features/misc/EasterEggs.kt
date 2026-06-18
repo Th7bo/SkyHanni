@@ -48,7 +48,7 @@ object EasterEggs {
 
     private val DIVAN_ALLOY = "DIVAN_ALLOY".toInternalName()
     private val chompsSound by lazy { SoundUtils.createSound("skyhanni:easteregg.chomps", 1f, 2f) }
-    private val holyAssSound by lazy { SoundUtils.createSound("skyhanni:easteregg.holyass", 1f, 2f) }
+    private val holyAssSound by lazy { SoundUtils.createSound("skyhanni:easteregg.holyass", 1f, 10f) }
 
     // Easter egg 1: VideoPlayer loaded at startup; play() is called when Divan Alloy drops
     private val divanReelPlayer = VideoPlayer("video/brainrot_reel.gif", loop = false)
