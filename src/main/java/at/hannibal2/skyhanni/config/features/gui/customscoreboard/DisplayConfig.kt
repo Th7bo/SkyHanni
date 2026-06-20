@@ -122,6 +122,15 @@ class DisplayConfig {
 
     @Expose
     @ConfigOption(
+        name = "Revamped Level Colors",
+        desc = "Use a revamped color palette for the SkyBlock Level, with new hex colors for every tier " +
+            "instead of the default vanilla colors.",
+    )
+    @ConfigEditorBoolean
+    var revampedLevelColors: Boolean = false
+
+    @Expose
+    @ConfigOption(
         name = "SkyBlock Time 24h Format",
         desc = "Display the current SkyBlock time in 24hr format rather than 12h Format.",
     )
