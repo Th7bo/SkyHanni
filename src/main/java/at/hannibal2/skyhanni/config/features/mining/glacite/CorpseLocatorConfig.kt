@@ -7,7 +7,7 @@ import io.github.notenoughupdates.moulconfig.annotations.ConfigOption
 
 class CorpseLocatorConfig {
     @Expose
-    @ConfigOption(name = "Enabled", desc = "Locate corpses that are within line of sight then mark it with a waypoint.")
+    @ConfigOption(name = "Enabled", desc = "Locate all corpses and mark them with a waypoint after a short random delay.")
     @ConfigEditorBoolean
     @FeatureToggle
     var enabled: Boolean = false
