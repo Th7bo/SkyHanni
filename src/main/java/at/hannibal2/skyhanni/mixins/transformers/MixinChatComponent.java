@@ -31,7 +31,7 @@ public abstract class MixinChatComponent {
     ) {
         FormattedCharSequence transformedContent = VisualWordsHook.modifyOrderedText(content);
         GuiMessage.Line line = original.call(addedTime, transformedContent, tag, endOfEntry);
-        line.skyhanni$setMessageId(message.skyhanni$getMessageId());
+        line.skyhanni$setParent(message);
         return line;
     }
 }
