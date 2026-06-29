@@ -1,6 +1,7 @@
 package at.hannibal2.skyhanni.data.hypixel.chat
 
 import at.hannibal2.skyhanni.SkyHanniMod
+import at.hannibal2.skyhanni.api.SkyBlockXPApi
 import at.hannibal2.skyhanni.api.event.HandleEvent
 import at.hannibal2.skyhanni.config.ConfigUpdaterMigrator
 import at.hannibal2.skyhanni.config.features.chat.PlayerMessagesConfig
@@ -21,6 +22,7 @@ import at.hannibal2.skyhanni.utils.ComponentMatcherUtils.intoSpan
 import at.hannibal2.skyhanni.utils.ComponentMatcherUtils.matchStyledMatcher
 import at.hannibal2.skyhanni.utils.ComponentSpan
 import at.hannibal2.skyhanni.utils.LorenzColor
+import at.hannibal2.skyhanni.utils.NumberUtil.formatIntOrNull
 import at.hannibal2.skyhanni.utils.SkyBlockUtils
 import at.hannibal2.skyhanni.utils.StringUtils
 import at.hannibal2.skyhanni.utils.StringUtils.applyFormattingFrom
@@ -226,6 +228,17 @@ object PlayerNameFormatter {
     private fun formatLevel(rawColor: String?, rawLevel: ComponentSpan?): Component? {
         val color = rawColor ?: return null
         val level = rawLevel?.getText() ?: error("level is null, color is not null")
+
+        val levelNumber = level.removeColor()
+        val levelInt = levelNumber.formatIntOrNull()
+        if (SkyBlockXPApi.colorInChat && levelInt != null) {
+            // Recolor the level by its tier with a true-hex component, keeping the original level style.
+            val number = SkyBlockXPApi.getLevelColorComponent(levelInt, levelNumber)
+            val base = "".asComponent { style = rawLevel.sampleStyleAtStart() }
+            return if (config.hideLevelBrackets) base.append(number)
+            else base.append("§8[").append(number).append("§8]")
+        }
+
         val levelData = "$color$level"
         val result = if (config.hideLevelBrackets) levelData else "§8[$levelData§8]"
         return result.applyFormattingFrom(rawLevel)

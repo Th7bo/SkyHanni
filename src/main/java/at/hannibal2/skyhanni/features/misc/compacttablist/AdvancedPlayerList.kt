@@ -1,6 +1,7 @@
 package at.hannibal2.skyhanni.features.misc.compacttablist
 
 import at.hannibal2.skyhanni.SkyHanniMod
+import at.hannibal2.skyhanni.api.SkyBlockXPApi
 import at.hannibal2.skyhanni.config.features.misc.compacttablist.AdvancedPlayerListConfig.PlayerSortEntry
 import at.hannibal2.skyhanni.data.FriendApi
 import at.hannibal2.skyhanni.data.GlobalRender
@@ -178,19 +179,30 @@ object AdvancedPlayerList {
             }
         }
 
+        val colorByTier = SkyHanniMod.feature.gui.skyBlockLevelColors.colorInTabList
+
         if (!config.hideLevel) {
-            val level = if (config.hideLevelBrackets) levelText else "§8[$levelText§8]"
-            add(level)
+            if (colorByTier) {
+                val number = SkyBlockXPApi.getLevelColorComponent(sbLevel, levelText.removeColor())
+                if (config.hideLevelBrackets) add(number)
+                else add("§8[".asComponent().append(number).append("§8]"))
+            } else {
+                add(if (config.hideLevelBrackets) levelText else "§8[$levelText§8]")
+            }
         }
 
-        val playerName = if (config.useLevelColorForName) {
-            levelText.getOrNull(3)?.let { "§$it" + name } ?: coloredName
-        } else if (config.hideRankColor) {
-            "§b" + name
+        if (config.useLevelColorForName && colorByTier) {
+            add(SkyBlockXPApi.getLevelColorComponent(sbLevel, name))
         } else {
-            coloredName
+            val playerName = if (config.useLevelColorForName) {
+                levelText.getOrNull(3)?.let { "§$it" + name } ?: coloredName
+            } else if (config.hideRankColor) {
+                "§b" + name
+            } else {
+                coloredName
+            }
+            add(playerName)
         }
-        add(playerName)
 
         if (config.hideEmblem) {
             if (ironman) {

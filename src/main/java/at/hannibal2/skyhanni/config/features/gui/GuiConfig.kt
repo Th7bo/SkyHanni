@@ -47,6 +47,14 @@ class GuiConfig {
     @Accordion
     val titleScreen: TitleScreenConfig = TitleScreenConfig()
 
+    @Expose
+    @ConfigOption(
+        name = "SkyBlock Level Colors",
+        desc = "Color the SkyBlock Level by its tier across the scoreboard, tab list, and nametags.",
+    )
+    @Accordion
+    val skyBlockLevelColors: SkyBlockLevelColorConfig = SkyBlockLevelColorConfig()
+
     @ConfigOption(
         name = "Edit GUI Locations",
         desc = "Opens the Position Editor, allows changing the position of SkyHanni's overlays.",

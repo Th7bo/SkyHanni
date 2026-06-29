@@ -6,7 +6,7 @@ import at.hannibal2.skyhanni.features.gui.customscoreboard.CustomScoreboardUtils
 object ScoreboardElementSkyBlockXP : ScoreboardElement() {
     override fun getDisplay() = buildList {
         val (level, xp) = SkyBlockXPApi.levelXPPair ?: return@buildList
-        val color = SkyBlockXPApi.getLevelColor()
+        val color = SkyBlockXPApi.getLevelChatColor()
         add(CustomScoreboardUtils.formatNumberDisplay("SB Level", level.toString(), color))
         add(CustomScoreboardUtils.formatNumberDisplay("XP", "$xp§3/§b100", "§b"))
     }
