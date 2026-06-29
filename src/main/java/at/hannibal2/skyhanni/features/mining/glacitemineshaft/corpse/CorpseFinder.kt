@@ -10,6 +10,7 @@ import at.hannibal2.skyhanni.events.entity.EntityMoveEvent
 import at.hannibal2.skyhanni.events.mining.CorpseFoundEvent
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.test.command.ErrorManager
+import at.hannibal2.skyhanni.utils.DelayedRun
 import at.hannibal2.skyhanni.utils.ItemUtils.getInternalName
 import at.hannibal2.skyhanni.utils.LocationUtils.canBeSeen
 import at.hannibal2.skyhanni.utils.RegexUtils.matches
@@ -19,6 +20,7 @@ import at.hannibal2.skyhanni.utils.repopatterns.RepoPattern
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
+import kotlin.time.Duration.Companion.milliseconds
 
 // TODO: Maybe implement automatic warp-in for chosen players if the user is not in a party.
 @SkyHanniModule
@@ -58,6 +60,23 @@ object CorpseFinder {
         if (corpseEntities.any { it.key.uuid == event.entity.uuid }) return
 
         corpseEntities[event.entity] = 0
+        scheduleThroughWallMark(event.entity)
+    }
+
+    /**
+     * Fork customization: mark detected corpses through walls after a short random delay, without waiting for
+     * line-of-sight (the [onPlayerMove] [canBeSeen] path). Reuses the upstream [CorpseFoundEvent] flow so the
+     * waypoint + chat handling stays in [MineshaftWaypoints], and flags the entity as found so the line-of-sight
+     * path skips it (no double-marking).
+     */
+    private fun scheduleThroughWallMark(entity: ArmorStand) {
+        DelayedRun.runDelayed((500..3000).random().milliseconds) {
+            val ticks = corpseEntities[entity] ?: return@runDelayed
+            if (ticks >= MARK_AS_FOUND_TICKS_THRESHOLD) return@runDelayed
+            val corpseType = CorpseType.fromEntityOrNull(entity) ?: return@runDelayed
+            corpseEntities[entity] = MARK_AS_FOUND_TICKS_THRESHOLD
+            CorpseFoundEvent(corpseType, entity.getLorenzVec().up(), areAllCorpsesFound()).post()
+        }
     }
 
     @HandleEvent(onlyOnIsland = IslandType.MINESHAFT)
