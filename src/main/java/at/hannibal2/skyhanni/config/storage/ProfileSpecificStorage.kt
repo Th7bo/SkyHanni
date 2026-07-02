@@ -18,6 +18,8 @@ import at.hannibal2.skyhanni.features.commands.OpenLastStorage
 import at.hannibal2.skyhanni.features.dungeon.CroesusChestTracker.OpenedState
 import at.hannibal2.skyhanni.features.dungeon.CroesusChestTracker.generateMaxChestAsList
 import at.hannibal2.skyhanni.features.dungeon.DungeonFloor
+import at.hannibal2.skyhanni.features.event.anniversary.RaffleTask
+import at.hannibal2.skyhanni.features.event.anniversary.RaffleTaskTracker
 import at.hannibal2.skyhanni.features.event.carnival.CarnivalGoal
 import at.hannibal2.skyhanni.features.event.diana.DianaProfitTracker
 import at.hannibal2.skyhanni.features.event.diana.MythologicalCreatureTracker
@@ -183,6 +185,21 @@ class ProfileSpecificStorage(
         // - shop name -> (item name, tier)
         @Expose
         var carnivalShopProgress: MutableMap<String, Map<String, Int>> = mutableMapOf()
+    }
+
+    // -- raffle tasks (Century Celebration)
+    @Expose
+    var raffleTasks: RaffleTaskStorage = RaffleTaskStorage()
+
+    class RaffleTaskStorage {
+        @Expose
+        var resetTime: SimpleTimeMark = farPast()
+
+        @Expose
+        var tasks: MutableList<RaffleTask> = mutableListOf()
+
+        @Expose
+        var selectedFilter: RaffleTaskTracker.RaffleFilter = RaffleTaskTracker.RaffleFilter.ALL
     }
 
     // -- diana
