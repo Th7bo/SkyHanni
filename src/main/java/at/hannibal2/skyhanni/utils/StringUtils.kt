@@ -218,9 +218,9 @@ object StringUtils {
                 if (color != lastColor) {
                     lastColor = color
                     lastFormatting = ""
-                    if (color != null) {
-                        newLine += color.toChatFormatting()
-                    }
+                    // toChatFormatting() returns null for custom RGB colors that aren't one of the
+                    // 16 standard chat colors; guard against appending a literal "null" in that case.
+                    color?.toChatFormatting()?.let { newLine += it }
                 }
                 var newFormatting = ""
                 newFormatting = if (style.isBold) "§l"
