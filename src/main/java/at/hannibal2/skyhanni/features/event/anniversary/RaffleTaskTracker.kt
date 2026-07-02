@@ -5,6 +5,7 @@ import at.hannibal2.skyhanni.api.event.HandleEvent
 import at.hannibal2.skyhanni.data.ProfileStorageData
 import at.hannibal2.skyhanni.events.GuiRenderEvent
 import at.hannibal2.skyhanni.events.InventoryFullyOpenedEvent
+import at.hannibal2.skyhanni.events.chat.SkyHanniChatEvent
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.utils.ItemUtils.getLore
 import at.hannibal2.skyhanni.utils.RegexUtils.firstMatcher
@@ -78,6 +79,14 @@ object RaffleTaskTracker {
         "Time until reset: (?<time>.+)",
     )
 
+    /**
+     * REGEX-TEST: RAFFLE TASK! You completed the Lily Pad Exploder raffle task and earned +1 Raffle Ticket and a slice of cake!
+     */
+    private val taskCompletePattern by patternGroup.pattern(
+        "chat.complete",
+        "RAFFLE TASK! You completed the (?<name>.+?) raffle task and earned .*",
+    )
+
     private var display: List<Renderable> = emptyList()
     private var dirty = true
 
@@ -91,6 +100,19 @@ object RaffleTaskTracker {
             readResetTime(event.inventoryItems)
         } else if (raffleBoxInventoryPattern.matches(name)) {
             readResetTime(event.inventoryItems)
+        }
+    }
+
+    @HandleEvent(onlyOnSkyblock = true)
+    fun onChat(event: SkyHanniChatEvent.Allow) {
+        if (!config.showRaffleTasks) return
+        val store = storage ?: return
+        taskCompletePattern.matchMatcher(event.cleanMessage) {
+            val name = group("name").trim()
+            val index = store.tasks.indexOfFirst { !it.completed && it.name.removeColor().trim() == name }
+            if (index == -1) return
+            store.tasks[index] = store.tasks[index].copy(completed = true)
+            dirty = true
         }
     }
 
