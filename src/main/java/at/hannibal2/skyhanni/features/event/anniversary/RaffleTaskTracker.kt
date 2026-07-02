@@ -3,7 +3,6 @@ package at.hannibal2.skyhanni.features.event.anniversary
 import at.hannibal2.skyhanni.SkyHanniMod
 import at.hannibal2.skyhanni.api.event.HandleEvent
 import at.hannibal2.skyhanni.data.ProfileStorageData
-import at.hannibal2.skyhanni.events.GuiRenderEvent
 import at.hannibal2.skyhanni.events.InventoryFullyOpenedEvent
 import at.hannibal2.skyhanni.events.chat.SkyHanniChatEvent
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
@@ -11,6 +10,7 @@ import at.hannibal2.skyhanni.utils.ItemUtils.getLore
 import at.hannibal2.skyhanni.utils.RegexUtils.firstMatcher
 import at.hannibal2.skyhanni.utils.RegexUtils.matchMatcher
 import at.hannibal2.skyhanni.utils.RegexUtils.matches
+import at.hannibal2.skyhanni.utils.RenderDisplayHelper
 import at.hannibal2.skyhanni.utils.RenderUtils.renderRenderables
 import at.hannibal2.skyhanni.utils.SafeItemStack
 import at.hannibal2.skyhanni.utils.SimpleTimeMark
@@ -20,6 +20,7 @@ import at.hannibal2.skyhanni.utils.TimeUtils
 import at.hannibal2.skyhanni.utils.TimeUtils.format
 import at.hannibal2.skyhanni.utils.renderables.Renderable
 import at.hannibal2.skyhanni.utils.renderables.RenderableUtils.addRenderableButton
+import at.hannibal2.skyhanni.utils.renderables.primitives.WrappedStringRenderable.Companion.wrappedText
 import at.hannibal2.skyhanni.utils.renderables.primitives.text
 import at.hannibal2.skyhanni.utils.repopatterns.RepoPattern
 import com.google.gson.annotations.Expose
@@ -42,6 +43,8 @@ object RaffleTaskTracker {
 
     private val config get() = SkyHanniMod.feature.event.anniversaryCelebration400
     private val storage get() = ProfileStorageData.profileSpecific?.raffleTasks
+
+    private const val OBJECTIVE_WRAP_WIDTH = 180
 
     private val patternGroup = RepoPattern.group("event.century.raffletasks")
 
@@ -168,14 +171,21 @@ object RaffleTaskTracker {
         if (isEnabled()) dirty = true
     }
 
-    @HandleEvent
-    fun onRenderOverlay(event: GuiRenderEvent.GuiOverlayRenderEvent) {
-        if (!isEnabled()) return
-        if (dirty) {
-            display = buildDisplay()
-            dirty = false
-        }
-        config.raffleTasksPosition.renderRenderables(display, posLabel = "Raffle Tasks")
+    init {
+        // Rendering through RenderDisplayHelper (instead of a plain overlay event) so the filter
+        // button stays clickable while the player's own inventory is open, like the trackers.
+        RenderDisplayHelper(
+            outsideInventory = true,
+            inOwnInventory = true,
+            condition = { isEnabled() },
+            onRender = {
+                if (dirty) {
+                    display = buildDisplay()
+                    dirty = false
+                }
+                config.raffleTasksPosition.renderRenderables(display, posLabel = "Raffle Tasks")
+            },
+        )
     }
 
     private fun buildDisplay(): List<Renderable> = buildList {
@@ -203,7 +213,7 @@ object RaffleTaskTracker {
             if (remaining.isEmpty()) {
                 add(Renderable.text("  §a§oAll complete!"))
             } else {
-                remaining.forEach { add(Renderable.text("  §7- §f${it.objective}")) }
+                remaining.forEach { add(Renderable.wrappedText("  §7- §f${it.objective}", setWidth = OBJECTIVE_WRAP_WIDTH)) }
             }
         }
     }
