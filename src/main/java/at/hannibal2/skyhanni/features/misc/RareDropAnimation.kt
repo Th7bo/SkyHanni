@@ -2,11 +2,12 @@ package at.hannibal2.skyhanni.features.misc
 
 import at.hannibal2.skyhanni.SkyHanniMod
 import at.hannibal2.skyhanni.api.event.HandleEvent
+import at.hannibal2.skyhanni.api.minecraftevents.RenderLayer
 import at.hannibal2.skyhanni.config.ConfigFileType
 import at.hannibal2.skyhanni.config.features.misc.RareDropAnimationConfig.AnimationStyle
 import at.hannibal2.skyhanni.config.features.misc.RareDropAnimationConfig.IgnoreModeEntry
-import at.hannibal2.skyhanni.events.GuiRenderEvent
 import at.hannibal2.skyhanni.events.chat.SkyHanniChatEvent
+import at.hannibal2.skyhanni.events.render.gui.GameOverlayRenderPostEvent
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.utils.ChatUtils
 import at.hannibal2.skyhanni.utils.GuiRenderUtils.renderOnScreen
@@ -233,8 +234,13 @@ object RareDropAnimation {
         )
     }
 
+    // Must render from GameOverlayRenderPostEvent: in 26.1 renderOnScreen() submits block-light
+    // items (skulls/3D block models) through a picture-in-picture render state that only draws
+    // correctly from this event. Rendering it from a GuiRenderEvent corrupts those items (upside
+    // down, half-rendered, or missing). Gate on a single layer so the animation draws once per frame.
     @HandleEvent(onlyOnSkyblock = true)
-    fun onRenderOverlay(event: GuiRenderEvent.GuiOverlayRenderEvent) {
+    fun onRenderOverlayPost(event: GameOverlayRenderPostEvent) {
+        if (event.type != RenderLayer.HOTBAR) return
         if (!config.enabled) return
         if (config.animationStyle == AnimationStyle.VANILLA) return
         val item = currentItem ?: return
