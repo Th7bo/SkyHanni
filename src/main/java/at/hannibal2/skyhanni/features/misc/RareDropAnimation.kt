@@ -10,11 +10,11 @@ import at.hannibal2.skyhanni.events.chat.SkyHanniChatEvent
 import at.hannibal2.skyhanni.events.render.gui.GameOverlayRenderPostEvent
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.utils.ChatUtils
-import at.hannibal2.skyhanni.utils.GuiRenderUtils.renderOnScreen
 import at.hannibal2.skyhanni.utils.ItemPriceUtils.formatCoin
 import at.hannibal2.skyhanni.utils.ItemPriceUtils.getPriceOrNull
 import at.hannibal2.skyhanni.utils.ItemUtils.getItemCategoryOrNull
 import at.hannibal2.skyhanni.utils.ItemUtils.getItemRarityOrNull
+import at.hannibal2.skyhanni.utils.ItemUtils.isSkull
 import at.hannibal2.skyhanni.utils.LorenzRarity
 import at.hannibal2.skyhanni.utils.NeuInternalName
 import at.hannibal2.skyhanni.utils.NeuInternalName.Companion.toInternalName
@@ -22,6 +22,7 @@ import at.hannibal2.skyhanni.utils.NeuItems.getItemStackOrNull
 import at.hannibal2.skyhanni.utils.NumberUtil.romanToDecimalIfNecessaryOrNull
 import at.hannibal2.skyhanni.utils.PetUtils
 import at.hannibal2.skyhanni.utils.RegexUtils.matchMatcher
+import at.hannibal2.skyhanni.utils.RenderUtils
 import at.hannibal2.skyhanni.utils.SimpleTimeMark
 import at.hannibal2.skyhanni.utils.SoundUtils
 import at.hannibal2.skyhanni.utils.SoundUtils.playSound
@@ -29,6 +30,7 @@ import at.hannibal2.skyhanni.utils.StringUtils.removeColor
 import at.hannibal2.skyhanni.utils.compat.DrawContextUtils
 import at.hannibal2.skyhanni.utils.compat.GuiScreenUtils
 import at.hannibal2.skyhanni.utils.repopatterns.RepoPattern
+import com.mojang.blaze3d.platform.Lighting
 import net.minecraft.client.Minecraft
 import net.minecraft.util.ARGB
 import net.minecraft.world.item.ItemStack
@@ -40,6 +42,9 @@ object RareDropAnimation {
 
     private val config get() = SkyHanniMod.feature.misc.rareDropAnimation
     private val repoGroup = RepoPattern.group("misc.raredropanimation")
+
+    // Matches GuiRenderUtils.SKULL_SCALE, used to keep skull items the same on-screen size.
+    private const val SKULL_SCALE = 5f / 4f
 
     /**
      * REGEX-TEST: §r§6§lRARE DROP! §r§6§lEnchanted Book §r§b(+208% ✯ Magic Find)
@@ -261,7 +266,7 @@ object RareDropAnimation {
         val centerY = screenH * 0.42f
 
         renderFlash(screenW, screenH, progress, alpha)
-        if (config.showItemIcon) renderItem(item, centerX, centerY, progress, alpha)
+        if (config.showItemIcon) renderItem(item, centerX, centerY, progress)
         if (config.showItemName) renderItemName(centerX, centerY, alpha)
         if (config.showItemPrice) renderItemPrice(centerX, centerY, alpha)
     }
@@ -284,16 +289,29 @@ object RareDropAnimation {
         DrawContextUtils.drawContext.fill(0, 0, screenW, screenH, flashColor)
     }
 
-    private fun renderItem(item: ItemStack, centerX: Float, centerY: Float, progress: Float, alpha: Float) {
+    private fun renderItem(item: ItemStack, centerX: Float, centerY: Float, progress: Float) {
         val scale = config.itemScale.toDouble()
         val halfSize = (8 * scale).toFloat()
         val bob = sin(progress * Math.PI * 6).toFloat() * 3f * (1f - progress)
-        item.renderOnScreen(
-            x = centerX - halfSize,
-            y = centerY - halfSize + bob,
-            scale = scale,
-            alpha = alpha,
-        )
+        val x = centerX - halfSize
+        val y = centerY - halfSize + bob
+
+        // Render via the vanilla item-draw path so the orientation matches the inventory icon.
+        // GuiRenderUtils.renderOnScreen() would route block-light items (skulls/3D block models)
+        // through the 26.1 picture-in-picture path, which renders them rotated the wrong way.
+        // Mirror renderOnScreen's skull rescale so the item keeps the same on-screen size.
+        val isItemSkull = item.isSkull()
+        val finalScale = (if (isItemSkull) SKULL_SCALE else 1f) * scale.toFloat()
+        val (translateX, translateY) = if (isItemSkull) {
+            val skullDiff = scale.toFloat() * 2.5f
+            x - skullDiff to y - skullDiff
+        } else x to y
+
+        RenderUtils.scheduleOnRenderThread(setupFor = Lighting.Entry.ITEMS_3D) {
+            DrawContextUtils.translatedPushPopResult(translateX, translateY, postTranslateScale = finalScale) {
+                DrawContextUtils.drawItem(item, 0, 0)
+            }
+        }.get()
     }
 
     private fun renderItemName(centerX: Float, centerY: Float, alpha: Float) {
