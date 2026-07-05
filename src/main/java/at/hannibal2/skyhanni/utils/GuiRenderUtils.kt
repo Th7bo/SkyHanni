@@ -325,6 +325,17 @@ object GuiRenderUtils {
     private const val SKULL_SCALE = (5f / 4f)
 
     /**
+     * Whether the item renders as a 3D model in the GUI (skulls, blocks, and other block-light
+     * items) as opposed to a flat sprite. These are the items that [renderOnScreen] pushes through
+     * the picture-in-picture render path when scaled up.
+     */
+    fun SafeItemStack.usesBlockLight(): Boolean {
+        val trackingState = TrackingItemStackRenderState()
+        Minecraft.getInstance().itemModelResolver.updateForTopItem(trackingState, this, ItemDisplayContext.GUI, null, null, 0)
+        return trackingState.usesBlockLight()
+    }
+
+    /**
      * Wrapper for rendering an item on screen, with the config pre-built.
      */
     fun SafeItemStack.renderOnScreen(
