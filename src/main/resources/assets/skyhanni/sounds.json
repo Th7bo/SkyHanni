@@ -1,13 +1,4 @@
 {
-    "centurytimer.active": {
-        "category": "neutral",
-        "sounds": [
-            {
-                "name": "skyhanni:itstimetopunchwheat",
-                "stream": false
-            }
-        ]
-    },
     "easteregg.chomps": {
         "category": "neutral",
         "sounds": [

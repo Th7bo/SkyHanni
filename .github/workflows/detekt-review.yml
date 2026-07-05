@@ -1,3 +1,4 @@
+# Execution context: base branch code, called by Detekt workflow
 name: Detekt Review
 
 on:
@@ -12,13 +13,14 @@ concurrency:
 
 permissions:
     issues: write
+    pull-requests: write
     actions: read
 
 jobs:
     review:
         name: Post Detekt review
         runs-on: ubuntu-latest
-        if: github.event.workflow_run.event == 'pull_request'
+        if: github.event.workflow_run.event == 'pull_request' || github.event.workflow_run.event == 'push'
         steps:
             -   name: Checkout
                 uses: actions/checkout@v7
@@ -61,10 +63,11 @@ jobs:
                     echo "$HOME/kotlinc/bin" >> "$GITHUB_PATH"
 
             -   name: Post review and manage label
-                if: steps.pr.outputs.number != ''
+                if: steps.pr.outputs.number != '' && steps.download.outcome == 'success'
                 env:
                     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                     GITHUB_REPOSITORY: ${{ github.repository }}
                     PR_NUMBER: ${{ steps.pr.outputs.number }}
                     ARTIFACT_DIR: ${{ runner.temp }}/detekt-artifact
-                run: kotlinc -script .github/scripts/post_detekt_review.main.kts
+                    MODE: detekt
+                run: kotlinc -script .github/scripts/post_pr_review.main.kts
