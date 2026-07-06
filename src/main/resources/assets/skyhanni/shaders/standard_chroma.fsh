@@ -7,6 +7,9 @@ layout(std140) uniform SkyHanniChromaUniforms {
     float timeOffset;
     float saturation;
     int forwardDirection;
+    int useCustomColors;
+    vec3 customColor1;
+    vec3 customColor2;
 };
 
 out vec4 fragColor;
@@ -30,9 +33,15 @@ void main() {
         fragCoord = gl_FragCoord.x + gl_FragCoord.y;
     }
 
-    // The hue takes in account the position, chroma settings, and time
-    float hue = mod(((fragCoord) / chromaSize) - timeOffset, 1.0);
+    // The wave takes in account the position, chroma settings, and time
+    float wave = mod(((fragCoord) / chromaSize) - timeOffset, 1.0);
 
-    // Set the color to use the new hue & original saturation/value/alpha values
-    fragColor = vec4(hsb2rgb_smooth(vec3(hue, saturation, rgb2b(vertexColor.rgb))), vertexColor.a);
+    if (useCustomColors == 1) {
+        // Smoothly oscillate between the two custom colors so the gradient is seamless
+        float blend = 0.5 - 0.5 * cos(wave * 6.28318530718);
+        fragColor = vec4(mix(customColor1, customColor2, blend) * rgb2b(vertexColor.rgb), vertexColor.a);
+    } else {
+        // Set the color to use the new hue & original saturation/value/alpha values
+        fragColor = vec4(hsb2rgb_smooth(vec3(wave, saturation, rgb2b(vertexColor.rgb))), vertexColor.a);
+    }
 }

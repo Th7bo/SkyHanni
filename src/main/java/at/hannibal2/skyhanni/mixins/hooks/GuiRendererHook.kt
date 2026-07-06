@@ -24,6 +24,7 @@ import net.minecraft.client.renderer.state.gui.GuiRenderState
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.feature.FeatureRenderDispatcher
+import org.joml.Vector3f
 
 object GuiRendererHook {
     var chromaUniform = SkyHanniChromaUniform()
@@ -45,8 +46,17 @@ object GuiRendererHook {
             Direction.BACKWARD_RIGHT, Direction.BACKWARD_LEFT -> 0
         }
 
-        chromaBufferSlice = chromaUniform.writeWith(chromaSize, timeOffset, saturation, forwardDirection)
+        val useCustomColors: Int = if (ChromaManager.config.customColors.get()) 1 else 0
+        val customColor1: Vector3f = ChromaManager.config.customColor1.get().getEffectiveColourRGB().toColorVector()
+        val customColor2: Vector3f = ChromaManager.config.customColor2.get().getEffectiveColourRGB().toColorVector()
+
+        chromaBufferSlice = chromaUniform.writeWith(
+            chromaSize, timeOffset, saturation, forwardDirection, useCustomColors, customColor1, customColor2,
+        )
     }
+
+    private fun Int.toColorVector(): Vector3f =
+        Vector3f(((this shr 16) and 0xFF) / 255f, ((this shr 8) and 0xFF) / 255f, (this and 0xFF) / 255f)
 
     // This 'should' be fine being injected into GuiRenderer's render pass since if the bound pipeline's shader doesn't
     // have a uniform with the given name, then the buffer slice will never be bound

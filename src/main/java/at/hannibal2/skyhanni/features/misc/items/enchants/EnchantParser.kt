@@ -2,6 +2,8 @@ package at.hannibal2.skyhanni.features.misc.items.enchants
 
 import at.hannibal2.skyhanni.SkyHanniMod
 import at.hannibal2.skyhanni.api.event.HandleEvent
+import at.hannibal2.skyhanni.config.ConfigManager
+import at.hannibal2.skyhanni.config.ConfigUpdaterMigrator
 import at.hannibal2.skyhanni.config.features.inventory.EnchantParsingConfig
 import at.hannibal2.skyhanni.events.ChatHoverEvent
 import at.hannibal2.skyhanni.events.ConfigLoadEvent
@@ -16,6 +18,7 @@ import at.hannibal2.skyhanni.utils.ConditionalUtils
 import at.hannibal2.skyhanni.utils.ConfigUtils.jumpToEditor
 import at.hannibal2.skyhanni.utils.ItemCategory
 import at.hannibal2.skyhanni.utils.ItemUtils.getItemCategoryOrNull
+import at.hannibal2.skyhanni.utils.LorenzColor
 import at.hannibal2.skyhanni.utils.NumberUtil.romanToDecimalIfNecessary
 import at.hannibal2.skyhanni.utils.OtherModsSettings
 import at.hannibal2.skyhanni.utils.SafeItemStack
@@ -29,7 +32,9 @@ import at.hannibal2.skyhanni.utils.compat.unformattedTextCompat
 import at.hannibal2.skyhanni.utils.compat.value
 import at.hannibal2.skyhanni.utils.repopatterns.RepoPattern
 import at.hannibal2.skyhanni.utils.system.PlatformUtils
+import com.google.gson.JsonPrimitive
 import com.mojang.blaze3d.systems.RenderSystem
+import io.github.notenoughupdates.moulconfig.ChromaColour
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.MutableComponent
@@ -112,25 +117,51 @@ object EnchantParser {
         ConditionalUtils.onToggle(
             config.colorParsing,
             config.format,
+            config.ultimateEnchantColor,
             config.perfectEnchantColor,
             config.boldPerfectEnchant,
             config.greatEnchantColor,
             config.goodEnchantColor,
             config.poorEnchantColor,
-            config.advancedEnchantColors.useAdvancedPerfectColor,
-            config.advancedEnchantColors.advancedPerfectColor,
-            config.advancedEnchantColors.useAdvancedGreatColor,
-            config.advancedEnchantColors.advancedGreatColor,
-            config.advancedEnchantColors.useAdvancedGoodColor,
-            config.advancedEnchantColors.advancedGoodColor,
-            config.advancedEnchantColors.useAdvancedPoorColor,
-            config.advancedEnchantColors.advancedPoorColor,
             config.hideVanillaEnchants,
             config.hideEnchantDescriptions,
             ChromaManager.config.enabled,
         ) {
             markCacheDirty()
         }
+    }
+
+    @HandleEvent
+    fun onConfigFix(event: ConfigUpdaterMigrator.ConfigFixEvent) {
+        // The enchant color dropdowns (LorenzColor) became free-form color pickers (ChromaColour),
+        // and the separate "Advanced" color overrides were merged into the main colors.
+        migrateEnchantColor(event, "ultimateEnchantColor", "Ultimate")
+        migrateEnchantColor(event, "perfectEnchantColor", "Perfect")
+        migrateEnchantColor(event, "greatEnchantColor", "Great")
+        migrateEnchantColor(event, "goodEnchantColor", "Good")
+        migrateEnchantColor(event, "poorEnchantColor", "Poor")
+    }
+
+    private fun migrateEnchantColor(event: ConfigUpdaterMigrator.ConfigFixEvent, field: String, advancedLevel: String) {
+        event.transform(139, "inventory.enchantParsing.$field") { element ->
+            val advanced = event.old.getAsJsonObject("inventory")
+                ?.getAsJsonObject("enchantParsing")
+                ?.getAsJsonObject("advancedEnchantColors")
+            val useAdvanced = (advanced?.get("useAdvanced${advancedLevel}Color") as? JsonPrimitive)?.asBoolean == true
+            val advancedColor = advanced?.get("advanced${advancedLevel}Color")
+            if (useAdvanced && advancedColor != null && advancedColor.isJsonPrimitive) {
+                // Advanced overrides are already stored as ChromaColour, so we can reuse them directly.
+                advancedColor
+            } else {
+                ConfigManager.gson.toJsonTree(lorenzColorNameToChroma(element.asString))
+            }
+        }
+    }
+
+    private fun lorenzColorNameToChroma(name: String): ChromaColour = when (runCatching { LorenzColor.valueOf(name) }.getOrNull()) {
+        null -> LorenzColor.GRAY.toChromaColor()
+        LorenzColor.CHROMA -> EnchantParsingConfig.defaultChromaColor()
+        else -> LorenzColor.valueOf(name).toChromaColor()
     }
 
     @HandleEvent(onlyOnSkyblock = true)

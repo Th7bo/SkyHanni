@@ -4,8 +4,10 @@ import at.hannibal2.skyhanni.config.FeatureToggle
 import at.hannibal2.skyhanni.features.chroma.CHROMA_PREVIEW_COLOR_CODE
 import at.hannibal2.skyhanni.features.chroma.ChromaManager
 import com.google.gson.annotations.Expose
+import io.github.notenoughupdates.moulconfig.ChromaColour
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorBoolean
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorButton
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorColour
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorDropdown
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorInfoText
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorSlider
@@ -52,6 +54,24 @@ class ChromaConfig {
 
         override fun toString() = displayName
     }
+
+    @Expose
+    @ConfigOption(
+        name = "Custom Colors",
+        desc = "Use a two-color gradient instead of the rainbow chroma.",
+    )
+    @ConfigEditorBoolean
+    val customColors: Property<Boolean> = Property.of(false)
+
+    @Expose
+    @ConfigOption(name = "Custom Color 1", desc = "The first color of the custom chroma gradient.")
+    @ConfigEditorColour
+    val customColor1: Property<ChromaColour> = Property.of(ChromaColour.fromStaticRGB(0xD4, 0x5C, 0xDC, 1))
+
+    @Expose
+    @ConfigOption(name = "Custom Color 2", desc = "The second color of the custom chroma gradient.")
+    @ConfigEditorColour
+    val customColor2: Property<ChromaColour> = Property.of(ChromaColour.fromStaticRGB(0x41, 0x79, 0xEC, 1))
 
     @ConfigOption(name = "Reset to Default", desc = "Reset all chroma settings to the default.")
     @ConfigEditorButton(buttonText = "Reset")

@@ -2,11 +2,11 @@ package at.hannibal2.skyhanni.features.misc.items.enchants
 
 import at.hannibal2.skyhanni.SkyHanniMod
 import at.hannibal2.skyhanni.features.chroma.ChromaManager
+import at.hannibal2.skyhanni.utils.ColorUtils.isChroma
 import at.hannibal2.skyhanni.utils.ItemCategory
 import at.hannibal2.skyhanni.utils.ItemUtils.extraAttributes
 import at.hannibal2.skyhanni.utils.ItemUtils.getInternalNameOrNull
 import at.hannibal2.skyhanni.utils.ItemUtils.getItemCategoryOrNull
-import at.hannibal2.skyhanni.utils.LorenzColor
 import at.hannibal2.skyhanni.utils.NeuInternalName.Companion.toInternalName
 import at.hannibal2.skyhanni.utils.NumberUtil.roundTo
 import at.hannibal2.skyhanni.utils.NumberUtil.shortFormat
@@ -47,7 +47,6 @@ open class Enchant : Comparable<Enchant> {
     private fun isStacking() = this is Stacking
 
     val config by lazy { SkyHanniMod.feature.inventory.enchantParsing }
-    val advanced by lazy { config.advancedEnchantColors }
 
     open fun getComponent(level: Int, itemStack: SafeItemStack?, isRoman: Boolean, appendNewline: Boolean = false): Component {
         val text = "$loreName ${if (isRoman) level.toRoman() else level}${if (appendNewline) "\n" else ""}"
@@ -55,35 +54,38 @@ open class Enchant : Comparable<Enchant> {
     }
 
     open fun getStyle(level: Int, itemStack: SafeItemStack? = null): Style {
-        val colorProperty: Property<out Any> = when {
-            level >= maxLevel -> if (advanced.useAdvancedPerfectColor.get()) advanced.advancedPerfectColor else config.perfectEnchantColor
-            level > goodLevel -> if (advanced.useAdvancedGreatColor.get()) advanced.advancedGreatColor else config.greatEnchantColor
-            level == goodLevel -> if (advanced.useAdvancedGoodColor.get()) advanced.advancedGoodColor else config.goodEnchantColor
-            else -> if (advanced.useAdvancedPoorColor.get()) advanced.advancedPoorColor else config.poorEnchantColor
+        val colorProperty: Property<ChromaColour> = when {
+            level >= maxLevel -> config.perfectEnchantColor
+            level > goodLevel -> config.greatEnchantColor
+            level == goodLevel -> config.goodEnchantColor
+            else -> config.poorEnchantColor
         }
 
         // Exceptions
         checkExceptions(level, itemStack)?.let { return it }
 
-        if (colorProperty.get() is LorenzColor &&
-            colorProperty.get() == LorenzColor.CHROMA && // If enchant color is chroma
-            !(ChromaManager.config.enabled.get() || EnchantParser.isSbaLoaded)
-        ) { // and chroma is disabled
-            return Style.EMPTY.withColor(ChatFormatting.GOLD).withBold(true) // return bold gold color
-        }
-
-        var style = if (colorProperty.get() is LorenzColor) {
-            if (colorProperty.get() == LorenzColor.CHROMA)
-                Style.EMPTY.withColor(TextColor(0xFFFFFF, "chroma"))
-            else
-                Style.EMPTY.withColor(TextColor.fromRgb((colorProperty.get() as LorenzColor).toColor().rgb))
-        } else {
-            Style.EMPTY.withColor((colorProperty.get() as ChromaColour).getEffectiveColourRGB())
-        }
+        var style = colorProperty.get().toEnchantStyle()
 
         if (level >= maxLevel && config.boldPerfectEnchant.get()) style = style.withBold(true)
 
         return style
+    }
+
+    /**
+     * Converts a configured color into the style used to render an enchant.
+     *
+     * Static colors use their plain RGB value, while chroma colors are routed through SkyHanni's
+     * chroma shader (via the special "chroma" [TextColor]), falling back to bold gold when chroma
+     * rendering is unavailable.
+     */
+    protected fun ChromaColour.toEnchantStyle(): Style {
+        if (!isChroma()) {
+            return Style.EMPTY.withColor(getEffectiveColourRGB())
+        }
+        if (!(ChromaManager.config.enabled.get() || EnchantParser.isSbaLoaded)) {
+            return Style.EMPTY.withColor(ChatFormatting.GOLD).withBold(true)
+        }
+        return Style.EMPTY.withColor(TextColor(0xFFFFFF, "chroma"))
     }
 
     /**
@@ -109,16 +111,8 @@ open class Enchant : Comparable<Enchant> {
                         itemCategory !in ItemCategory.miningTools &&
                         internalName != PROMISING_SHOVEL)
                 ) {
-                    with(Style.EMPTY) {
-                        if (advanced.useAdvancedPerfectColor.get()) {
-                            withColor(advanced.advancedPerfectColor.get().getEffectiveColourRGB())
-                        } else {
-                            if (config.perfectEnchantColor.get() == LorenzColor.CHROMA)
-                                withColor(TextColor(0xFFFFFF, "chroma"))
-                            else
-                                withColor(config.perfectEnchantColor.get().toChromaColor().getEffectiveColourRGB())
-                        }
-                    }.let { if (config.boldPerfectEnchant.get()) it.withBold(true) else it }
+                    config.perfectEnchantColor.get().toEnchantStyle()
+                        .let { if (config.boldPerfectEnchant.get()) it.withBold(true) else it }
                 } else null
             }
             else -> null
@@ -141,14 +135,7 @@ open class Enchant : Comparable<Enchant> {
 
     class Ultimate : Enchant() {
         override fun getStyle(level: Int, itemStack: SafeItemStack?): Style {
-            return if (advanced.useAdvancedUltimateColor.get()) {
-                Style.EMPTY.withColor(advanced.advancedUltimateColor.get().getEffectiveColourRGB()).withBold(true)
-            } else {
-                if (config.ultimateEnchantColor.get() == LorenzColor.CHROMA)
-                    Style.EMPTY.withColor(TextColor(0xFFFFFF, "chroma")).withBold(true)
-                else
-                    Style.EMPTY.withColor(config.ultimateEnchantColor.get().toColor().rgb).withBold(true)
-            }
+            return config.ultimateEnchantColor.get().toEnchantStyle().withBold(true)
         }
     }
 

@@ -4,9 +4,10 @@ import at.hannibal2.skyhanni.config.FeatureToggle
 import at.hannibal2.skyhanni.features.misc.items.enchants.EnchantParser
 import at.hannibal2.skyhanni.utils.LorenzColor
 import com.google.gson.annotations.Expose
-import io.github.notenoughupdates.moulconfig.annotations.Accordion
+import io.github.notenoughupdates.moulconfig.ChromaColour
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorBoolean
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorButton
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorColour
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorDropdown
 import io.github.notenoughupdates.moulconfig.annotations.ConfigOption
 import io.github.notenoughupdates.moulconfig.observer.Property
@@ -43,14 +44,22 @@ class EnchantParsingConfig {
     val chromaRunnable = Runnable { EnchantParser.openConfigLink() }
 
     @Expose
-    @ConfigOption(name = "Ultimate Enchantment Color", desc = "The color the Ultimate enchantment will be. (Will always be bold)")
-    @ConfigEditorDropdown
-    val ultimateEnchantColor: Property<LorenzColor> = Property.of(LorenzColor.LIGHT_PURPLE)
+    @ConfigOption(
+        name = "Ultimate Enchantment Color",
+        desc = "The color the Ultimate enchantment will be. (Will always be bold)\n" +
+            "§eEnable chroma in the color picker to use SkyHanni's chroma.",
+    )
+    @ConfigEditorColour
+    val ultimateEnchantColor: Property<ChromaColour> = Property.of(defaultUltimateColor())
 
     @Expose
-    @ConfigOption(name = "Perfect Enchantment Color", desc = "The color an enchantment will be at max level.")
-    @ConfigEditorDropdown
-    val perfectEnchantColor: Property<LorenzColor> = Property.of(LorenzColor.CHROMA)
+    @ConfigOption(
+        name = "Perfect Enchantment Color",
+        desc = "The color an enchantment will be at max level.\n" +
+            "§eEnable chroma in the color picker to use SkyHanni's chroma.",
+    )
+    @ConfigEditorColour
+    val perfectEnchantColor: Property<ChromaColour> = Property.of(defaultChromaColor())
 
     @Expose
     @ConfigOption(name = "Perfect Enchantment Bold", desc = "Enchantments at max level will be bold.")
@@ -59,23 +68,18 @@ class EnchantParsingConfig {
 
     @Expose
     @ConfigOption(name = "Great Enchantment Color", desc = "The color an enchantment will be at a great level.")
-    @ConfigEditorDropdown
-    val greatEnchantColor: Property<LorenzColor> = Property.of(LorenzColor.GOLD)
+    @ConfigEditorColour
+    val greatEnchantColor: Property<ChromaColour> = Property.of(LorenzColor.GOLD.toChromaColor())
 
     @Expose
     @ConfigOption(name = "Good Enchantment Color", desc = "The color an enchantment will be at a good level.")
-    @ConfigEditorDropdown
-    val goodEnchantColor: Property<LorenzColor> = Property.of(LorenzColor.BLUE)
+    @ConfigEditorColour
+    val goodEnchantColor: Property<ChromaColour> = Property.of(LorenzColor.BLUE.toChromaColor())
 
     @Expose
     @ConfigOption(name = "Poor Enchantment Color", desc = "The color an enchantment will be at a poor level.")
-    @ConfigEditorDropdown
-    val poorEnchantColor: Property<LorenzColor> = Property.of(LorenzColor.GRAY)
-
-    @Expose
-    @ConfigOption(name = "Advanced Enchantment Colors", desc = "")
-    @Accordion
-    val advancedEnchantColors: AdvancedEnchantmentColors = AdvancedEnchantmentColors()
+    @ConfigEditorColour
+    val poorEnchantColor: Property<ChromaColour> = Property.of(LorenzColor.GRAY.toChromaColor())
 
     @Expose
     @ConfigOption(
@@ -103,4 +107,14 @@ class EnchantParsingConfig {
     )
     @ConfigEditorBoolean
     var stackingEnchantProgress: Boolean = true
+
+    companion object {
+        // A white base color with a non-zero rotation time marks a color as chroma. The base color
+        // is irrelevant since chroma enchants are rendered through SkyHanni's chroma shader instead.
+        private const val CHROMA_ROTATION_MILLIS = 2000
+
+        fun defaultChromaColor(): ChromaColour = ChromaColour.fromRGB(255, 255, 255, CHROMA_ROTATION_MILLIS, 255)
+
+        fun defaultUltimateColor(): ChromaColour = LorenzColor.LIGHT_PURPLE.toChromaColor()
+    }
 }

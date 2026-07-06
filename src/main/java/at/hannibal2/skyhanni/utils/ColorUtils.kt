@@ -20,6 +20,9 @@ object ColorUtils {
     // TODO use this function only in utils classes
     fun ChromaColour.toInt() = this.getEffectiveColour().rgb
 
+    /** Whether this color is animated (chroma), as opposed to a plain static color. */
+    fun ChromaColour.isChroma(): Boolean = timeForFullRotationInMillis != 0
+
     fun String.getFirstColorCode() = takeIf { it.firstOrNull() == '§' }?.getOrNull(1)
 
     fun getAlpha(color: Int) = color shr 24 and 0xFF
