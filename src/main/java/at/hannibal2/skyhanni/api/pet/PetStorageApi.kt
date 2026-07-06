@@ -3,6 +3,7 @@ package at.hannibal2.skyhanni.api.pet
 import at.hannibal2.skyhanni.SkyHanniMod
 import at.hannibal2.skyhanni.api.event.HandleEvent
 import at.hannibal2.skyhanni.config.ConfigFileType
+import at.hannibal2.skyhanni.config.features.pets.display.text.TextPetDisplayConfig
 import at.hannibal2.skyhanni.data.PetData
 import at.hannibal2.skyhanni.data.ProfileStorageData
 import at.hannibal2.skyhanni.data.jsonobjects.repo.neu.NeuItemJson
@@ -55,6 +56,7 @@ import kotlin.time.Duration.Companion.seconds
 object PetStorageApi {
 
     private val config get() = SkyHanniMod.feature.misc.pets
+    private val displayConfig get() = SkyHanniMod.feature.misc.pets.display
     private val petStorage get() = ProfileStorageData.petProfiles
     private const val PET_MENU_CURRENT_PET_SLOT = 4
     private const val SB_MENU_CURRENT_PET_SLOT = 30
@@ -66,19 +68,26 @@ object PetStorageApi {
     private var petWidgetState: PetWidgetState = PetWidgetState.NOT_READY
 
     val isPetWidgetReadyForDisplay: Boolean
-        get() = petWidgetState == PetWidgetState.READY
+        get() = petWidgetState == PetWidgetState.READY ||
+            // A maxed pet without widget overflow XP still has enough data to display (level-derived XP),
+            // so only withhold the display when the user actually wants overflow XP shown.
+            (petWidgetState == PetWidgetState.MAXED_WITHOUT_OVERFLOW_XP && !isOverflowXpDisplayed())
 
     fun getPetWidgetDisplayMessage(): List<String>? = when {
         !TabWidget.PET.isActive && SkyBlockUtils.lastWorldSwitch.passedSince() >= WIDGET_LOAD_GRACE -> listOf(
             "§cPet Tab Widget Missing",
             "§cDo /widget and enable the pet widget",
         )
-        petWidgetState == PetWidgetState.MAXED_WITHOUT_OVERFLOW_XP -> listOf(
+        petWidgetState == PetWidgetState.MAXED_WITHOUT_OVERFLOW_XP && isOverflowXpDisplayed() -> listOf(
             "§cPet Widget Overflow XP Missing",
             "§cEnable overflow XP in the pet widget",
         )
         else -> null
     }
+
+    // Only nag about the pet widget's overflow XP if the user actually displays overflow XP.
+    private fun isOverflowXpDisplayed(): Boolean =
+        TextPetDisplayConfig.TextElement.OVERFLOW_XP in displayConfig.text.equippedPet.enabledTexts.get()
 
     internal val debugPetWidgetState: String get() = petWidgetState.name
 
