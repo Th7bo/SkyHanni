@@ -3,7 +3,6 @@ package at.hannibal2.skyhanni.api.pet
 import at.hannibal2.skyhanni.SkyHanniMod
 import at.hannibal2.skyhanni.api.event.HandleEvent
 import at.hannibal2.skyhanni.config.ConfigFileType
-import at.hannibal2.skyhanni.config.features.pets.display.text.TextPetDisplayConfig
 import at.hannibal2.skyhanni.data.PetData
 import at.hannibal2.skyhanni.data.ProfileStorageData
 import at.hannibal2.skyhanni.data.jsonobjects.repo.neu.NeuItemJson
@@ -27,23 +26,23 @@ import at.hannibal2.skyhanni.utils.NumberUtil.formatDouble
 import at.hannibal2.skyhanni.utils.NumberUtil.formatDoubleOrNull
 import at.hannibal2.skyhanni.utils.NumberUtil.formatInt
 import at.hannibal2.skyhanni.utils.PetUtils
-import at.hannibal2.skyhanni.utils.SafeItemStack
 import at.hannibal2.skyhanni.utils.RegexUtils.firstMatcher
 import at.hannibal2.skyhanni.utils.RegexUtils.groupOrNull
 import at.hannibal2.skyhanni.utils.RegexUtils.matchMatcher
 import at.hannibal2.skyhanni.utils.RegexUtils.matches
+import at.hannibal2.skyhanni.utils.SafeItemStack
 import at.hannibal2.skyhanni.utils.SimpleTimeMark
-import at.hannibal2.skyhanni.utils.SkyBlockUtils
 import at.hannibal2.skyhanni.utils.SkyBlockItemModifierUtils.getPetInfo
+import at.hannibal2.skyhanni.utils.SkyBlockUtils
 import at.hannibal2.skyhanni.utils.StringUtils.removeColor
 import at.hannibal2.skyhanni.utils.StringUtils.removeResets
 import at.hannibal2.skyhanni.utils.chat.TextHelper
 import at.hannibal2.skyhanni.utils.collection.CollectionUtils.indexOfFirstOrNull
 import at.hannibal2.skyhanni.utils.collection.CollectionUtils.takeIfNotEmpty
+import at.hannibal2.skyhanni.utils.compat.InventoryCompat.orNull
 import at.hannibal2.skyhanni.utils.compat.formattedTextCompat
 import at.hannibal2.skyhanni.utils.compat.formattedTextCompatLessResets
 import at.hannibal2.skyhanni.utils.compat.hover
-import at.hannibal2.skyhanni.utils.compat.InventoryCompat.orNull
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import java.util.UUID
@@ -56,7 +55,6 @@ import kotlin.time.Duration.Companion.seconds
 object PetStorageApi {
 
     private val config get() = SkyHanniMod.feature.misc.pets
-    private val displayConfig get() = SkyHanniMod.feature.misc.pets.display
     private val petStorage get() = ProfileStorageData.petProfiles
     private const val PET_MENU_CURRENT_PET_SLOT = 4
     private const val SB_MENU_CURRENT_PET_SLOT = 30
@@ -68,26 +66,19 @@ object PetStorageApi {
     private var petWidgetState: PetWidgetState = PetWidgetState.NOT_READY
 
     val isPetWidgetReadyForDisplay: Boolean
-        get() = petWidgetState == PetWidgetState.READY ||
-            // A maxed pet without widget overflow XP still has enough data to display (level-derived XP),
-            // so only withhold the display when the user actually wants overflow XP shown.
-            (petWidgetState == PetWidgetState.MAXED_WITHOUT_OVERFLOW_XP && !isOverflowXpDisplayed())
+        get() = petWidgetState != PetWidgetState.NOT_READY
 
-    fun getPetWidgetDisplayMessage(): List<String>? = when {
+    fun getPetWidgetDisplayMessage(requireExactPetXp: Boolean): List<String>? = when {
         !TabWidget.PET.isActive && SkyBlockUtils.lastWorldSwitch.passedSince() >= WIDGET_LOAD_GRACE -> listOf(
             "§cPet Tab Widget Missing",
             "§cDo /widget and enable the pet widget",
         )
-        petWidgetState == PetWidgetState.MAXED_WITHOUT_OVERFLOW_XP && isOverflowXpDisplayed() -> listOf(
+        requireExactPetXp && petWidgetState == PetWidgetState.MAXED_WITHOUT_OVERFLOW_XP -> listOf(
             "§cPet Widget Overflow XP Missing",
             "§cEnable overflow XP in the pet widget",
         )
         else -> null
     }
-
-    // Only nag about the pet widget's overflow XP if the user actually displays overflow XP.
-    private fun isOverflowXpDisplayed(): Boolean =
-        TextPetDisplayConfig.TextElement.OVERFLOW_XP in displayConfig.text.equippedPet.enabledTexts.get()
 
     internal val debugPetWidgetState: String get() = petWidgetState.name
 
