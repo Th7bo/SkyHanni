@@ -9,7 +9,6 @@ import kotlinx.coroutines.withContext
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.Identifier
-import org.w3c.dom.Node
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -178,7 +177,7 @@ class VideoPlayer(
     }
 
     private fun extractDelay(meta: IIOMetadata): Duration {
-        val tree = meta.getAsTree("javax_imageio_gif_image_1.0") as? Node ?: return 100.milliseconds
+        val tree = meta.getAsTree("javax_imageio_gif_image_1.0") ?: return 100.milliseconds
         val children = tree.childNodes
         for (i in 0 until children.length) {
             val node = children.item(i)
@@ -193,7 +192,7 @@ class VideoPlayer(
     private data class FrameLayout(val left: Int, val top: Int, val disposal: String)
 
     private fun extractLayout(meta: IIOMetadata): FrameLayout {
-        val tree = meta.getAsTree("javax_imageio_gif_image_1.0") as? Node
+        val tree = meta.getAsTree("javax_imageio_gif_image_1.0")
             ?: return FrameLayout(0, 0, "doNotDispose")
         val children = tree.childNodes
         var left = 0
