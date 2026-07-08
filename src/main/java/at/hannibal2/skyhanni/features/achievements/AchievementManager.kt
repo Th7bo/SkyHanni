@@ -129,7 +129,7 @@ object AchievementManager {
                 append("!")
                 hover = achievement.getDescription()
                 command = "/shachievements"
-            }
+            },
         )
         achievementSound.playSound()
     }
@@ -139,13 +139,13 @@ object AchievementManager {
     @HandleEvent
     fun onAchievementRegistration(event: AchievementRegistrationEvent) {
         val achievement = Achievement(
-            "Test Achievement".asComponent(),
-            componentBuilder {
+            name = "Test Achievement".asComponent(),
+            description = componentBuilder {
                 append("Run /shtestachievement to test the achievement system!") {
                     withColor(ChatFormatting.DARK_PURPLE)
                 }
             },
-            1f,
+            userLuckAmount = 1f,
         )
         event.register(achievement, TEST_ACHIEVEMENT)
     }
@@ -164,7 +164,7 @@ object AchievementManager {
                     BrigadierArguments.greedyString(),
                     BrigadierUtils.dynamicSuggestionProvider {
                         config.filter { it.value.getNameOrNull() != null }.map { it.key }
-                    }
+                    },
                 ) { id ->
                     val achievement = config[id]
                     if (achievement == null) {
@@ -176,8 +176,7 @@ object AchievementManager {
                             componentBuilder {
                                 append(achievement.getName())
                                 append(" is now locked!")
-                            }
-
+                            },
                         )
                     }
                 }
@@ -207,7 +206,7 @@ object AchievementManager {
                     "SkyHanni Achievements! ($unlocked/$totalCount)",
                     achievementList,
                     ChatUtils.getUniqueMessageId(),
-                    "No Achievements Found"
+                    "No Achievements Found",
                 ) { achievement ->
                     componentBuilder {
                         if (achievement.secret && !achievement.data.achieved) {
