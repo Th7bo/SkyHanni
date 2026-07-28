@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(RenderSystem.class)
-public class MixinRenderSystem {
+public abstract class MixinRenderSystem {
 
     @Inject(method = "flipFrame", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/DynamicUniforms;reset()V"))
     private static void clearChromaUniforms(CallbackInfo ci) {
@@ -18,5 +18,4 @@ public class MixinRenderSystem {
         RoundedShapeDrawer.INSTANCE.clearUniforms();
         NebulaTitleBackgroundRenderer.INSTANCE.clearUniforms();
     }
-
 }
