@@ -2,6 +2,7 @@ package at.hannibal2.skyhanni.mixins.hooks
 
 import at.hannibal2.skyhanni.features.chroma.ChromaFontManager
 import at.hannibal2.skyhanni.features.misc.visualwords.ModifyVisualWords
+import at.hannibal2.skyhanni.test.command.ErrorManager
 import at.hannibal2.skyhanni.utils.chat.TextHelper.asComponent
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import net.minecraft.client.gui.components.ChatComponent
@@ -48,6 +49,8 @@ object GuiChatHook {
         ModifyVisualWords.changeWords = false
         try {
             original.call(chatGraphicsAccess, screenHeight, ticks, displayMode)
+        } catch (e: Throwable) {
+            ErrorManager.logErrorWithData(e, "Error in chat rendering")
         } finally {
             ChromaFontManager.renderingChat = false
             ModifyVisualWords.changeWords = true
