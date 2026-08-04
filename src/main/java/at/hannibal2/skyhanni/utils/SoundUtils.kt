@@ -57,10 +57,7 @@ object SoundUtils {
 
     fun createSound(name: String, pitch: Float, volume: Float = 50f): SoundInstance {
         val newSound = SoundCompat.getModernSoundName(name)
-        // If the name already contains a namespace separator, parse it as-is; otherwise sanitise
-        // legacy/bare sound names (which may contain uppercase or other invalid characters).
-        val sanitized = if (':' in newSound) newSound else newSound.replace(Regex("[^a-z0-9/._-]"), "")
-        val identifier = Identifier.parse(sanitized)
+        val identifier = Identifier.parse(newSound.replace(Regex("[^a-z0-9:/._-]"), ""))
         return SimpleSoundInstance.forUI(SoundEvent.createVariableRangeEvent(identifier), pitch, volume)
     }
 
