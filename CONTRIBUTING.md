@@ -135,8 +135,12 @@ When writing the PR description, ensure you fill out the template with all the n
 In the **What** section, write technical details or explanations that don't belong in the changelog.
 Including that field is optional for small changes.
 
-If your PR relies on another PR, please include this information at the beginning of the description. Use the format `- #<pr number>`
-for the dependency, or `- <url>` for REPO dependencies.
+If your PR relies on another PR, please include this information at the beginning of the description, under a `## Dependencies` heading.
+Use the format `- #<pr number>` for the dependency, or `- <url>` for REPO dependencies.
+
+Only the lines belonging to that section are read. The list may start after a blank line. The first line that does not start with
+`- ` ends the section, so keep the entries together. Anything wrong with the section, for example a mistyped number or a line in the wrong
+format, blocks the pull request until it is corrected.
 
 ### Changelog Builder
 
@@ -454,8 +458,16 @@ a [Discord Bot](https://github.com/SkyHanniStudios/DiscordBot) that helps with s
 Several GitHub Actions workflows run automatically on pull requests to enforce code quality and keep PR metadata up to date.
 All workflows use `.github/scripts/pr_review.main.kts` as the shared review script, invoked with a `MODE` parameter.
 
-When a PR is updated, any existing comment posted by a workflow is collapsed into a `<details>` spoiler. If issues still exist, a new
-comment is posted at the bottom of the conversation. When all issues are resolved, the label is removed and no new comment is posted.
+When a PR is updated, any existing comment posted by a workflow is collapsed into a `<details>` spoiler. What follows depends on the
+workflow. The Detekt, Build Failure, Merge Conflict and Changelog Check comments only ever announce that something is wrong: a new comment
+is posted while issues still exist, and once everything is resolved the label is removed without a new comment. The Dependency Label and
+Description Keyword Labels comments announce both directions, so they also post when the situation resolves.
+
+Every one of these comments carries an invisible marker that lets a later run recognize its own previous comment. For the two that announce
+both directions the marker also records which direction was announced last, and that record decides whether a new comment is needed. The
+label does not. A label edited by hand therefore no longer influences whether a comment appears. Labels are still read elsewhere: they
+select which PRs get re-evaluated after a dependency PR is closed, and the Merge Conflict workflow skips a PR that already carries its
+label.
 
 Most workflows use a two-workflow split to allow write-operations on fork PRs without granting untrusted code elevated permissions.
 The first workflow is triggered by `pull_request`, runs with limited permissions, and uploads results as an artifact. The second is
@@ -540,8 +552,21 @@ Two dependency formats are supported:
 - `- #<pr number>` for same-repository PRs
 - `- <url>` for external repository PRs
 
+Both are read only from the `## Dependencies` section, never from the rest of the description. The section starts at the heading, may be
+followed by blank lines, and ends at the first line that does not start with `- `. Text after a valid entry is ignored, so
+`- #1234 (needed for the item API)` is recognized. A line matching neither format is ignored.
+
 Dependencies on `hannibal002/SkyHanni-REPO` are explicitly excluded from the open check, as that repository is considered part of the same
 release unit.
+
+The section itself can also be wrong: an entry that fails to resolve, for example through a mistyped number, a line matching neither
+format, the template placeholder left in place, or the heading appearing twice, in which case only the first one is read. The comment then
+shows only the problems, because the state of the other dependencies says nothing useful while the section is broken, and the commit
+status fails. The label still follows the genuinely open dependencies.
+
+A comment is posted when a PR starts waiting, when the list of open dependencies changes, when a problem with the section appears or
+disappears, and when a dependency PR is closed. It names the closed PR if the run was triggered by one, followed by the dependencies that
+are still open, or by the note that the PR is no longer waiting on any. A run that has nothing new to announce produces no comment.
 
 The check runs on every `opened`, `edited`, `closed`, and `synchronize` event via `pull_request_target`. On `closed`, all open PRs currently
 carrying the label are re-evaluated so the label is removed from dependent PRs when their dependency merges.
@@ -549,12 +574,16 @@ carrying the label are re-evaluated so the label is removed from dependent PRs w
 Known limitation: if a dependency PR in an external repository merges, the workflow does not fire for that repository. The label on the
 dependent PR remains until the PR itself is edited or another supported event occurs.
 
+Known limitation: the heading is matched line by line without looking at markdown structure. A description that quotes
+`## Dependencies` a second time, for example inside a fenced code block, is reported as having a duplicate heading.
+
 Relevant files: `.github/workflows/check_dependencies.yml`, `.github/scripts/pr_review.main.kts`.
 
 #### Description Keyword Labels
 
 Some labels are controlled by keywords in the pull request description. Writing the keyword on its own line adds the label, removing
-the line removes it again. Every change posts a comment on the PR explaining what happened.
+the line removes it again. Both directions post a comment on the PR explaining what happened, but only when the state actually changed
+compared to what the last comment announced. Editing the description without touching the keyword line posts nothing.
 
 Supported keywords:
 
