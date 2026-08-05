@@ -3,7 +3,17 @@
 // called from detekt-review.yml, build-review.yml, label-merge-conflict.yml, changelog-review.yml, check_dependencies.yml,
 // and keyword-labels.yml
 
-import com.google.gson.*
+// TODO: remove the suppressions and split the complex functions once this file can be broken up into
+//  several files. Splitting them now would only add more top level functions to a file that is
+//  already well over 1000 lines long.
+@file:Suppress("CyclomaticComplexMethod", "LoopWithTooManyJumpStatements")
+
+import com.google.gson.Gson
+import com.google.gson.JsonArray
+import com.google.gson.JsonElement
+import com.google.gson.JsonNull
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import java.io.IOException
 import java.net.URI
 import java.net.URLEncoder
@@ -11,7 +21,11 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
-import kotlin.io.path.*
+import kotlin.io.path.Path
+import kotlin.io.path.div
+import kotlin.io.path.exists
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.readText
 import kotlin.system.exitProcess
 
 /**
@@ -146,7 +160,7 @@ fun error(message: String, commentError: Boolean = true, fix: String = defaultEr
         postPrComment(
             prNumber = prNumber,
             body = buildErrorComment(message, fix),
-            commentError = false
+            commentError = false,
         ) { "Error: could not post workflow error as comment (HTTP $it)" }
         errorCommentPosted = true
     }
@@ -197,9 +211,13 @@ data class Dependency(val owner: String, val repoName: String, val pullNumber: I
     val link: String = "https://github.com/$owner/$repoName/pull/$pullNumber"
 }
 
-enum class DependencyState { OPEN, CLOSED, UNRESOLVED }
+enum class DependencyState {
+    OPEN,
+    CLOSED,
+    UNRESOLVED
+}
 
-// Split during parsing, not derived afterwards: a line on hannibal002/SkyHanni-REPO is valid and deliberately
+// Split during parsing, not derived afterward: a line on hannibal002/SkyHanni-REPO is valid and deliberately
 // produces no dependency, so subtracting the recognized entries would report it as malformed.
 data class ParsedDependencySection(val dependencies: List<Dependency>, val unrecognizedLines: List<String>)
 
@@ -274,7 +292,7 @@ fun ghRequest(method: String, path: String, payload: Any? = null): Pair<Int, Jso
     val request = buildGhRequest(method, path, payload)
     if (!isRetryable(method, path)) return sendGhRequest(request)
 
-    // The GitHub API answers with 502/503/504 every now and then. Those are transient, so a single one
+    // The GitHub API answers with 502/503/504 occasionally. Those are transient, so a single one
     // must not fail the whole workflow run. The last attempt returns whatever it gets.
     repeat(maxRequestAttempts - 1) { index ->
         val attempt = index + 1
@@ -319,8 +337,8 @@ fun getPrLabels(prNumber: String): Set<String> {
     val (status, body) = ghRepoGet("/issues/$prNumber/labels")
     if (status.isHttpError) return emptySet()
     val array = body as? JsonArray ?: return emptySet()
-    return array.mapNotNull {
-        (it as? JsonObject)?.get("name")?.takeIf { it.isJsonPrimitive }?.asString
+    return array.mapNotNull { element ->
+        (element as? JsonObject)?.get("name")?.takeIf { it.isJsonPrimitive }?.asString
     }.toSet()
 }
 
@@ -370,7 +388,7 @@ fun buildDetektBody(findings: List<Finding>): String = buildString {
 fun StringBuilder.appendCompact(findings: List<Finding>) {
     for (finding in findings) {
         val fileName = finding.path.substringAfterLast('/')
-        // The message renders outside the code span, so it keeps the full markdown escaping.
+        // The message renders outside the code span, so it keeps the full Markdown escaping.
         val message = sanitize(finding.message)
         val className = sanitizeCodeSpan(fileName)
         val line = finding.line
@@ -447,20 +465,21 @@ fun CommentType.findAllStates(comments: List<PrComment>): List<StateComment> = c
     state?.let { StateComment(comment, it) }
 }
 
-fun CommentType.post(prNumber: String, marker: String, body: String, errorMessage: (Int) -> String) {
+fun CommentType.post(prNumber: String, body: String, errorMessage: (Int) -> String) {
     postPrComment(prNumber, "$marker\n$body", errorMessage = errorMessage)
 }
 
-fun CommentType.post(prNumber: String, body: String, errorMessage: (Int) -> String) {
-    post(prNumber, marker, body, errorMessage)
+// Posts under a state marker instead of the plain one, for the modes that announce both directions.
+fun CommentType.postState(prNumber: String, state: String, body: String, errorMessage: (Int) -> String) {
+    postPrComment(prNumber, "${stateMarker(state)}\n$body", errorMessage = errorMessage)
 }
 
 
 // A collapsed comment loses its active marker, including the state variant. Only the stale marker remains, so
 // it can never be mistaken for the current announcement.
 //
-// Every body posted under a CommentType needs a line starting with "### ", it becomes the title of the spoiler
-// the collapsed comment turns into. A body without one ends up under [fallbackTitle].
+// Every body posted under a CommentType needs a line starting with "###" followed by a space, it becomes
+// the title of the spoiler the collapsed comment turns into. A body without one ends up under [fallbackTitle].
 // A failed collapse is harmless, so [onFailure] may return: the newest-state lookup ignores the leftover.
 fun CommentType.markAsStale(
     comment: PrComment,
@@ -759,7 +778,7 @@ fun runDetektMode(prNumber: String) {
                 error(
                     "Detekt workflow did not complete successfully AND detekt-run.log does not exist, is null or empty. " +
                         "(conclusion: $conclusion). " +
-                        "Check the workflow run for details."
+                        "Check the workflow run for details.",
                 )
             }
         }
@@ -814,17 +833,16 @@ fun parseSarifFindings(sarif: JsonObject, workspace: String): List<Finding> = bu
 
 fun runBuildMode(prNumber: String) {
     val log1 = readBuildLog(System.getenv("ARTIFACT_DIR_1"))
-    val log2 = readBuildLog(System.getenv("ARTIFACT_DIR_2"))
 
     buildComment.staleExisting(prNumber)
 
-    if (log1.isNullOrBlank() && log2.isNullOrBlank()) {
+    if (log1.isNullOrBlank()) {
         println("No build failures found, removing build label")
         setLabel(prNumber, buildLabel, false)
         exitProcess(0)
     }
 
-    val versions = filterStonecutterDuplicates(listOf("1.21.11" to log1, "26.1" to log2))
+    val versions = filterStonecutterDuplicates(listOf("26.1" to log1))
     buildComment.post(prNumber, buildBuildFailureBody(versions)) {
         "Error: could not post build failure comment (HTTP $it)"
     }
@@ -1369,7 +1387,7 @@ fun runKeywordLabelMode(prNumber: String) {
         if (posting) {
             val body = if (keywordPresent) buildKeywordLabelAddedComment(entry)
             else buildKeywordLabelRemovedComment(entry)
-            entry.comment.post(prNumber, entry.comment.stateMarker(currentState), body) {
+            entry.comment.postState(prNumber, currentState, body) {
                 "Error: could not post \"${entry.label}\" comment (HTTP $it)"
             }
         }
