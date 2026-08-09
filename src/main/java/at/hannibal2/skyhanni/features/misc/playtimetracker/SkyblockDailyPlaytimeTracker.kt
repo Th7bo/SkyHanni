@@ -5,12 +5,14 @@ import at.hannibal2.skyhanni.api.event.HandleEvent
 import at.hannibal2.skyhanni.config.commands.CommandCategory
 import at.hannibal2.skyhanni.config.commands.CommandRegistrationEvent
 import at.hannibal2.skyhanni.config.storage.PlayerSpecificStorage.DailySkyblockPlaytimeStorage
+import at.hannibal2.skyhanni.data.IslandType
 import at.hannibal2.skyhanni.data.ProfileStorageData
 import at.hannibal2.skyhanni.events.GuiRenderEvent
 import at.hannibal2.skyhanni.events.SecondPassedEvent
 import at.hannibal2.skyhanni.events.minecraft.KeyDownEvent
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.utils.RenderUtils.renderRenderable
+import at.hannibal2.skyhanni.utils.SkyBlockUtils
 import at.hannibal2.skyhanni.utils.TimeUnit
 import at.hannibal2.skyhanni.utils.TimeUtils.format
 import at.hannibal2.skyhanni.utils.collection.CollectionUtils.addOrPut
@@ -54,6 +56,28 @@ object SkyblockDailyPlaytimeTracker {
     fun secondsForCalendarDay(day: LocalDate): Long =
         storage()?.secondsByIsoDate?.get(day.toString()) ?: 0L
 
+    /**
+     * Per-island seconds of a single day, biggest first.
+     * Empty for days recorded before island tracking existed.
+     */
+    fun islandBreakdownFor(isoDate: String): List<Pair<String, Long>> {
+        val islands = storage()?.islandSecondsByIsoDate?.get(isoDate).orEmpty()
+        return islands.entries
+            .map { (key, secs) -> islandDisplayName(key) to secs }
+            .sortedByDescending { it.second }
+    }
+
+    /** Seconds of a day that have no island attached, e.g. days partially recorded by an older version. */
+    fun untrackedSecondsFor(isoDate: String): Long {
+        val stor = storage() ?: return 0L
+        val total = stor.secondsByIsoDate[isoDate] ?: return 0L
+        val tracked = stor.islandSecondsByIsoDate[isoDate]?.values?.sum() ?: 0L
+        return (total - tracked).coerceAtLeast(0L)
+    }
+
+    private fun islandDisplayName(storageKey: String): String =
+        IslandType.entries.find { it.name == storageKey }?.displayName ?: storageKey
+
     /** Returns the all-time highest single-day playtime in seconds together with the date it was achieved. */
     fun computeAllTimeMax(): Pair<Long, LocalDate?> {
         val stor = storage() ?: return 0L to null
@@ -69,10 +93,12 @@ object SkyblockDailyPlaytimeTracker {
         val retention = config.historyRetentionDays.toInt().coerceIn(14, 730)
         val today = LocalDate.now()
         val oldestKeep = today.minusDays(retention.toLong() - 1)
-        stor.secondsByIsoDate.keys.removeAll { key ->
-            val d = runCatching { LocalDate.parse(key) }.getOrNull() ?: return@removeAll false
-            d.isBefore(oldestKeep)
+        val isOutdated = { key: String ->
+            val d = runCatching { LocalDate.parse(key) }.getOrNull()
+            d != null && d.isBefore(oldestKeep)
         }
+        stor.secondsByIsoDate.keys.removeAll(isOutdated)
+        stor.islandSecondsByIsoDate.keys.removeAll(isOutdated)
     }
 
     @HandleEvent(onlyOnSkyblock = true)
@@ -81,6 +107,11 @@ object SkyblockDailyPlaytimeTracker {
         val stor = storage() ?: return
         val todayIso = LocalDate.now().toString()
         stor.secondsByIsoDate.addOrPut(todayIso, 1L)
+
+        val island = SkyBlockUtils.currentIsland
+        if (island.isValidIsland()) {
+            stor.islandSecondsByIsoDate.getOrPut(todayIso) { mutableMapOf() }.addOrPut(island.name, 1L)
+        }
 
         // One-time migration: initialize stored max from history for users upgrading from older versions.
         if (stor.allTimeMaxSeconds == 0L && stor.secondsByIsoDate.isNotEmpty()) {

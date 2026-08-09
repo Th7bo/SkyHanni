@@ -90,6 +90,16 @@ class PlayerSpecificStorage {
         @Expose
         var secondsByIsoDate: MutableMap<String, Long> = mutableMapOf()
 
+        /**
+         * Per-island breakdown of [secondsByIsoDate].
+         * Outer keys: ISO-local `yyyy-MM-dd`. Inner keys: [at.hannibal2.skyhanni.data.IslandType] enum names.
+         *
+         * Only filled since island tracking was added, so days recorded by older versions have no entry here
+         * (and days may have a smaller island sum than their [secondsByIsoDate] total).
+         */
+        @Expose
+        var islandSecondsByIsoDate: MutableMap<String, MutableMap<String, Long>> = mutableMapOf()
+
         /** Persisted all-time best single-day seconds. Survives history pruning. 0 = uninitialized (migrated on first use). */
         @Expose
         var allTimeMaxSeconds: Long = 0L
