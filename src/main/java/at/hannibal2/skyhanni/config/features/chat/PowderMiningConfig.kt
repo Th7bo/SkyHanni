@@ -18,6 +18,16 @@ class PowderMiningConfig {
 
     @Expose
     @ConfigOption(
+        name = "Compact Chest Rewards",
+        desc = "Collapse the chest reward message into a single line. Hover over it to see the original message.\n" +
+            "§eShows every reward, so it overrides the hide options below.",
+    )
+    @ConfigEditorBoolean
+    @FeatureToggle
+    var compact: Boolean = true
+
+    @Expose
+    @ConfigOption(
         name = "Powder",
         desc = "Hide §dGemstone §7and §aMithril §7Powder rewards under a certain amount.\n" +
             "§a0§7: §aShow all\n" +

@@ -74,7 +74,7 @@ object PowderMiningChatFilter {
      * REGEX-TEST: §e§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
      * REGEX-TEST: §d§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
      */
-    private val chestWrapperPattern by patternGroup.pattern(
+    val chestWrapperPattern by patternGroup.pattern(
         "powder.chestwrapper",
         "^§[ed]§l▬{64}\$",
     )
@@ -82,7 +82,7 @@ object PowderMiningChatFilter {
     /**
      * WRAPPED-REGEX-TEST: "  §r§6§lCHEST LOCKPICKED"
      */
-    private val lockPickedPattern by patternGroup.pattern(
+    val lockPickedPattern by patternGroup.pattern(
         "powder.picked",
         ".*§r§6§lCHEST LOCKPICKED.*",
     )
@@ -90,7 +90,7 @@ object PowderMiningChatFilter {
     /**
      * WRAPPED-REGEX-TEST: "  §r§5§lLOOT CHEST COLLECTED"
      */
-    private val lootChestCollectedPattern by patternGroup.pattern(
+    val lootChestCollectedPattern by patternGroup.pattern(
         "lootchest.collected",
         ".*§r§5§lLOOT CHEST COLLECTED.*",
     )
@@ -98,7 +98,7 @@ object PowderMiningChatFilter {
     /**
      * WRAPPED-REGEX-TEST: "  §r§a§lREWARDS"
      */
-    private val rewardHeaderPattern by patternGroup.pattern(
+    val rewardHeaderPattern by patternGroup.pattern(
         "reward.header",
         ".*§r§[af]§lREWARDS.*",
     )
