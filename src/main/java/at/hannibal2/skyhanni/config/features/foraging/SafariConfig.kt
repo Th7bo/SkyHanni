@@ -4,6 +4,7 @@ import at.hannibal2.skyhanni.config.FeatureToggle
 import com.google.gson.annotations.Expose
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorBoolean
 import io.github.notenoughupdates.moulconfig.annotations.ConfigOption
+import io.github.notenoughupdates.moulconfig.annotations.SearchTag
 
 class SafariConfig {
 
@@ -24,5 +25,15 @@ class SafariConfig {
     @ConfigEditorBoolean
     @FeatureToggle
     var hideyhoFinder: Boolean = true
+
+    @Expose
+    @ConfigOption(
+        name = "Share Hunter Trade",
+        desc = "Shows a clickable message to share the trade a Hunter offers with your party, including their location.",
+    )
+    @SearchTag("huntress shard gem")
+    @ConfigEditorBoolean
+    @FeatureToggle
+    var tradeShare: Boolean = true
 
 }
