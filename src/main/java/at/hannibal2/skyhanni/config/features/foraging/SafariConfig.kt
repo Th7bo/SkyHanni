@@ -2,6 +2,7 @@ package at.hannibal2.skyhanni.config.features.foraging
 
 import at.hannibal2.skyhanni.config.FeatureToggle
 import com.google.gson.annotations.Expose
+import io.github.notenoughupdates.moulconfig.annotations.Accordion
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorBoolean
 import io.github.notenoughupdates.moulconfig.annotations.ConfigOption
 import io.github.notenoughupdates.moulconfig.annotations.SearchTag
@@ -35,5 +36,10 @@ class SafariConfig {
     @ConfigEditorBoolean
     @FeatureToggle
     var tradeShare: Boolean = true
+
+    @Expose
+    @ConfigOption(name = "Sparkling Notifier", desc = "")
+    @Accordion
+    val sparklingNotifier = SparklingNotifierConfig()
 
 }
