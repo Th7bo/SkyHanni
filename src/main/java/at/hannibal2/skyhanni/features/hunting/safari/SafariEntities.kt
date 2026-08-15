@@ -8,9 +8,13 @@ import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.utils.AllEntitiesGetter
 import at.hannibal2.skyhanni.utils.EntityUtils
 import at.hannibal2.skyhanni.utils.EntityUtils.cleanName
+import at.hannibal2.skyhanni.utils.EntityUtils.getSkinTexture
 import at.hannibal2.skyhanni.utils.LocationUtils.distanceTo
+import at.hannibal2.skyhanni.utils.LorenzVec
 import at.hannibal2.skyhanni.utils.SimpleTimeMark
+import at.hannibal2.skyhanni.utils.SkullTextureHolder
 import at.hannibal2.skyhanni.utils.getLorenzVec
+import net.minecraft.client.player.RemotePlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.decoration.ArmorStand
@@ -38,6 +42,9 @@ object SafariEntities {
     /** The word a rare variant carries in its name. */
     private const val SPARKLING = "Sparkling"
 
+    /** Hideyho arrives as a player rather than as a mob, so its skin is what names it. */
+    private val hideyhoSkin by SkullTextureHolder.texture("HIDEYHO")
+
     /**
      * One labelled critter. [mob] is null when nothing was found under the label, which is the case for a Hideyho
      * (it arrives as a player) and for a capsule mid capture.
@@ -60,6 +67,16 @@ object SafariEntities {
      * own timestamps has to key off this rather than off the tick it read them on.
      */
     var lastScan: SimpleTimeMark = SimpleTimeMark.farPast()
+        private set
+
+    /**
+     * Where Hideyho is standing, found by its skin rather than by a nametag.
+     *
+     * Hiding takes the nametag away but not the entity, so the sweep above cannot see a hidden one at all. The skin
+     * is what is left to go on, and it is the same evidence
+     * [at.hannibal2.skyhanni.features.hunting.safari.HideyhoFinder] confirms a hiding spot with.
+     */
+    var hideyhoLocation: LorenzVec? = null
         private set
 
     @HandleEvent(onlyOnIsland = IslandType.SAFARI)
@@ -87,8 +104,11 @@ object SafariEntities {
     private fun scan(): List<Sighting> {
         val labels = mutableListOf<Triple<Entity, SafariCritter, Boolean>>()
         val candidates = mutableListOf<LivingEntity>()
+        var hideyho: LorenzVec? = null
 
         for (entity in EntityUtils.getAllEntities()) {
+            if (entity is RemotePlayer && entity.isHideyho()) hideyho = entity.getLorenzVec()
+
             val named = resolve(entity)
             if (named != null) {
                 labels.add(Triple(entity, named.first, named.second))
@@ -97,9 +117,15 @@ object SafariEntities {
             }
         }
 
+        hideyhoLocation = hideyho
         return labels.map { (label, critter, sparkling) ->
             Sighting(critter, label, nearestMob(candidates, label), sparkling)
         }
+    }
+
+    private fun RemotePlayer.isHideyho(): Boolean {
+        val texture = hideyhoSkin ?: return false
+        return getSkinTexture() == texture
     }
 
     /**

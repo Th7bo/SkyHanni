@@ -75,9 +75,10 @@ class SafariHighlightConfig {
     @ConfigOption(
         name = "Hideyho Solver",
         desc = "Mark where Hideyho is actually hiding, while you are in the Haunted biome.\n" +
-            "§7Hiding only moves it: its nametag stays loaded on the client the whole time, so this is where it " +
-            "is rather than a list of known hiding spots.\n" +
-            "§7The mark survives the entity unloading, so one pass within range is enough.",
+            "§7Hiding takes its nametag away but not the entity, so it is found by its skin: the mark is where it " +
+            "actually is rather than a list of known hiding spots.\n" +
+            "§7The client is only sent the entity once you are within range of it, so you have to have passed by " +
+            "the spot - but the mark survives it unloading again, so one pass is enough.",
     )
     @SearchTag("hide and seek hideyho")
     @ConfigEditorBoolean

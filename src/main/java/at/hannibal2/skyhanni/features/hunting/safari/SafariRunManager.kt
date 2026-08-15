@@ -56,6 +56,7 @@ object SafariRunManager {
         if (!catchEvent.type.isCatch) return
 
         SafariEncounterAlerts.onCatch(catchEvent.critter)
+        SafariHideyhoSolver.onCatch(catchEvent.critter)
         announceNewlyCompleteBiomes(session)
         announceRunMilestones(session)
     }

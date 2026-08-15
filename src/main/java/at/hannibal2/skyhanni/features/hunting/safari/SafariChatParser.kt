@@ -42,7 +42,7 @@ object SafariChatParser {
 
     /**
      * REGEX-TEST: CAPTURE! You caught a Foxtrot and gained a Foxtrot Shard!
-     * REGEX-TEST: CAPTURE! You found Hideyho, and as a reward he gave you a Hideyho Shard!
+     * REGEX-TEST: CAPTURE! You found the Hideyho, and as a reward it gave you 3x Hideyho Shard!
      * REGEX-TEST: CAPTURE! You caught a Gemzie and gained 2x Gemzie Shard!
      */
     private val capturePattern by patternGroup.pattern(
