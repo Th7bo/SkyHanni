@@ -47,6 +47,7 @@ import at.hannibal2.skyhanni.features.garden.tracker.RareCropTracker
 import at.hannibal2.skyhanni.features.garden.visitor.VisitorReward
 import at.hannibal2.skyhanni.features.gifting.GiftProfitTracker
 import at.hannibal2.skyhanni.features.hunting.HuntingProfitTracker
+import at.hannibal2.skyhanni.features.hunting.safari.SafariRunRecord
 import at.hannibal2.skyhanni.features.inventory.CurrentEquipmentApi
 import at.hannibal2.skyhanni.features.inventory.chocolatefactory.stray.CFStrayTracker
 import at.hannibal2.skyhanni.features.inventory.experimentationtable.ExperimentsProfitTracker
@@ -1099,6 +1100,10 @@ class ProfileSpecificStorage(
 
         @Expose
         var huntingProfitTracker: HuntingProfitTracker.Data = HuntingProfitTracker.Data()
+
+        /** Finished Critter Safari runs, oldest first. */
+        @Expose
+        var safariRuns: MutableList<SafariRunRecord> = mutableListOf()
     }
 
     @Expose

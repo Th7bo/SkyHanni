@@ -12,6 +12,7 @@ import at.hannibal2.skyhanni.utils.ChatUtils
 import at.hannibal2.skyhanni.utils.EntityUtils.cleanName
 import at.hannibal2.skyhanni.utils.EntityUtils.getEntitiesNearby
 import at.hannibal2.skyhanni.utils.LocationUtils.distanceTo
+import at.hannibal2.skyhanni.utils.LorenzVec
 import at.hannibal2.skyhanni.utils.collection.CollectionUtils.removeIf
 import at.hannibal2.skyhanni.utils.getLorenzVec
 import at.hannibal2.skyhanni.utils.render.WorldRenderUtils.drawFilledBoundingBox
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.decoration.ArmorStand
 object SparklingNotifier {
 
     private val config get() = SkyHanniMod.feature.hunting.safari.sparklingNotifier
+    private val partyConfig get() = SkyHanniMod.feature.hunting.safari.party
 
     // Hypixel marks these mobs with an all caps keyword in their nametag.
     private const val SPARKLING_KEYWORD = "SPARKLING"
@@ -62,8 +64,16 @@ object SparklingNotifier {
         if (!notifiedEntityIds.add(nametag.id)) return
 
         val name = nametag.sparklingName
-        TitleManager.sendTitle("§d§lSparkling $name!")
-        ChatUtils.notifyOrDisable("Found a Sparkling $name!", config::enabled)
+        val where = describe(nametag.getLorenzVec().roundToBlock())
+        TitleManager.sendTitle("§d§lSparkling $name!", where)
+        ChatUtils.notifyOrDisable("Found a Sparkling $name! ($where)", config::enabled)
+        // Biome and coordinates, so a partymate covering another biome can be sent straight to it.
+        SafariEncounterAlerts.post(partyConfig.sparkling, "SPARKLING $name! ($where)")
+    }
+
+    private fun describe(position: LorenzVec): String {
+        val coords = "${position.x.toInt()} ${position.y.toInt()} ${position.z.toInt()}"
+        return SafariAreaApi.biomeAt(position)?.let { "${it.displayName} $coords" } ?: coords
     }
 
     @HandleEvent(onlyOnIsland = SAFARI)
