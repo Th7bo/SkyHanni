@@ -43,11 +43,6 @@ class GuiConfig {
     val chroma: ChromaConfig = ChromaConfig()
 
     @Expose
-    @ConfigOption(name = "Title Screen", desc = "Options for the Minecraft main menu (outside a world).")
-    @Accordion
-    val titleScreen: TitleScreenConfig = TitleScreenConfig()
-
-    @Expose
     @ConfigOption(
         name = "SkyBlock Level Colors",
         desc = "Color the SkyBlock Level by its tier across the scoreboard, tab list, and nametags.",
