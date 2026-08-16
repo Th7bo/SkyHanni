@@ -2,15 +2,20 @@ package at.hannibal2.skyhanni.features.inventory.sacks
 
 import at.hannibal2.skyhanni.SkyHanniMod
 import at.hannibal2.skyhanni.api.event.HandleEvent
+import at.hannibal2.skyhanni.config.features.inventory.sacks.OutsideSackValueConfig.PriceSourceEntry
 import at.hannibal2.skyhanni.data.SackApi
+import at.hannibal2.skyhanni.events.ConfigLoadEvent
 import at.hannibal2.skyhanni.events.InventoryOpenEvent
 import at.hannibal2.skyhanni.events.ProfileJoinEvent
 import at.hannibal2.skyhanni.events.SackChangeEvent
 import at.hannibal2.skyhanni.events.SecondPassedEvent
 import at.hannibal2.skyhanni.features.inventory.bazaar.BazaarApi.isBazaarItem
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
+import at.hannibal2.skyhanni.utils.ConditionalUtils
 import at.hannibal2.skyhanni.utils.HypixelCommands
 import at.hannibal2.skyhanni.utils.ItemPriceSource
+import at.hannibal2.skyhanni.utils.ItemPriceUtils.formatCoin
+import at.hannibal2.skyhanni.utils.ItemPriceUtils.getNpcPriceOrNull
 import at.hannibal2.skyhanni.utils.ItemPriceUtils.getPrice
 import at.hannibal2.skyhanni.utils.ItemUtils.getNumberedName
 import at.hannibal2.skyhanni.utils.ItemUtils.repoItemName
@@ -51,6 +56,13 @@ object OutsideSackValue {
                 config.position.renderRenderables(display, posLabel = "Outside Sacks Value")
             },
         )
+    }
+
+    @HandleEvent(ConfigLoadEvent::class)
+    private fun onConfigLoad() {
+        ConditionalUtils.onToggle(config.priceSource) {
+            update()
+        }
     }
 
     @HandleEvent
@@ -114,7 +126,7 @@ object OutsideSackValue {
         for (sackData in data) {
             val list = listOf(
                 Renderable.hoverTips(sackData.sackName, tips = sackData.lore),
-                Renderable.hoverTips(sackData.sackPrice.toString(), tips = sackData.lore),
+                Renderable.hoverTips(sackData.sackPrice, tips = sackData.lore),
             )
             tableData[list] = "${sackData.sackName},${sackData.itemNames.joinToString(",")}"
         }
@@ -171,7 +183,24 @@ object OutsideSackValue {
         },
     )
 
-    class SackData(val sackName: String, val sackPrice: MinMaxNumber, val itemNames: List<String>, val lore: List<String>)
+    class SackData(val sackName: String, val sackPrice: String, val itemNames: List<String>, val lore: List<String>)
+
+    private fun useNpcPrice() = config.priceSource.get() == PriceSourceEntry.NPC_SELL
+
+    // the npc price is a single number, therefore no range gets shown
+    private fun MinMaxNumber.format(): String = if (useNpcPrice()) min.formatCoin() else toString()
+
+    private fun NeuInternalName.getSackPrice(amount: Int): MinMaxNumber? {
+        if (useNpcPrice()) {
+            val price = getNpcPriceOrNull()?.times(amount) ?: return null
+            return MinMaxNumber(price, price)
+        }
+        if (!isBazaarItem()) return null
+        return MinMaxNumber(
+            getPrice(ItemPriceSource.BAZAAR_INSTANT_SELL) * amount,
+            getPrice(ItemPriceSource.BAZAAR_INSTANT_BUY) * amount,
+        )
+    }
 
     private fun calculateData(): Pair<String, List<SackData>> {
         val sackForItem = mutableMapOf<NeuInternalName, String>()
@@ -190,11 +219,8 @@ object OutsideSackValue {
         for ((internalName, data) in SackApi.sackData) {
             val amount = data.amount
             if (amount == 0) continue
-            if (!internalName.isBazaarItem()) continue
 
-            val priceMin = internalName.getPrice(ItemPriceSource.BAZAAR_INSTANT_SELL) * amount
-            val priceMax = internalName.getPrice(ItemPriceSource.BAZAAR_INSTANT_BUY) * amount
-            val price = MinMaxNumber(priceMin, priceMax)
+            val price = internalName.getSackPrice(amount) ?: continue
             // edge case for invalid items that fall in "No Sack"
             val sack = sackForItem[internalName] ?: "§cNo"
             pricePerSack.addOrPut(sack, price)
@@ -209,19 +235,19 @@ object OutsideSackValue {
             val itemPrices = itemPricesPerSack[sack] ?: continue
             val lore = mutableListOf<String>()
             val name = "§a$sack Sack"
-            lore.add("$name $sackPrice")
+            lore.add("$name ${sackPrice.format()}")
             val sackAmount = amountPerSack[sack] ?: 0
             lore.add(sackAmount.formatItemAmount())
             lore.add("")
             val itemNames = mutableListOf<String>()
             for ((item, price) in itemPrices.entries.sortedByDescending { it.value.min }) {
                 val amount = SackApi.sackData[item]?.amount ?: error("no amount for $item")
-                lore.add("${item.getNumberedName(amount)}§8: $price")
+                lore.add("${item.getNumberedName(amount)}§8: ${price.format()}")
                 itemNames.add(item.repoItemName.removeColor())
             }
-            sacks.add(SackData(name, sackPrice, itemNames, lore))
+            sacks.add(SackData(name, sackPrice.format(), itemNames, lore))
         }
 
-        return "$totalPrice §ein sacks ${totalAmount.formatItemAmount()}" to sacks
+        return "${totalPrice.format()} §ein sacks ${totalAmount.formatItemAmount()}" to sacks
     }
 }
