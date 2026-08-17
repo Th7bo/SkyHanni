@@ -17,10 +17,10 @@ import at.hannibal2.skyhanni.utils.RegexUtils.matchMatcher
 import at.hannibal2.skyhanni.utils.RegexUtils.matches
 import at.hannibal2.skyhanni.utils.UtilsPatterns
 import at.hannibal2.skyhanni.utils.chat.TextHelper.asComponent
+import at.hannibal2.skyhanni.utils.compat.MinecraftCompat
 import at.hannibal2.skyhanni.utils.compat.formattedTextCompatLeadingWhiteLessResets
 import at.hannibal2.skyhanni.utils.compat.withColor
 import at.hannibal2.skyhanni.utils.repopatterns.RepoPattern
-import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.network.chat.TextColor
 import java.awt.Color
@@ -219,7 +219,7 @@ object SkyBlockXPApi {
             simpleCallback {
                 // Deferred so the closing chat screen doesn't immediately override our screen.
                 DelayedRun.runNextTick {
-                    Minecraft.getInstance().setScreen(LevelColorGui())
+                    MinecraftCompat.screen = LevelColorGui()
                 }
             }
         }

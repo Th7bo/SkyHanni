@@ -3,6 +3,7 @@ package at.hannibal2.skyhanni.config.features.misc
 import at.hannibal2.skyhanni.config.FeatureToggle
 import at.hannibal2.skyhanni.config.core.config.Position
 import at.hannibal2.skyhanni.features.misc.playtimetracker.PlaytimeTrackerGui
+import at.hannibal2.skyhanni.utils.compat.MinecraftCompat
 import com.google.gson.annotations.Expose
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorBoolean
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorButton
@@ -10,7 +11,6 @@ import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorKeybind
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorSlider
 import io.github.notenoughupdates.moulconfig.annotations.ConfigLink
 import io.github.notenoughupdates.moulconfig.annotations.ConfigOption
-import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 
 class PlaytimeTrackerConfig {
@@ -64,7 +64,7 @@ class PlaytimeTrackerConfig {
     @ConfigOption(name = "Open Tracker GUI", desc = "Shows daily totals, averages, and full history.")
     @ConfigEditorButton(buttonText = "Open")
     val openTrackerGui: Runnable = Runnable {
-        Minecraft.getInstance().setScreen(PlaytimeTrackerGui())
+        MinecraftCompat.screen = PlaytimeTrackerGui()
     }
 
     @Expose

@@ -13,7 +13,6 @@ import at.hannibal2.skyhanni.utils.SimpleTimeMark
 import at.hannibal2.skyhanni.utils.getLorenzVec
 import at.hannibal2.skyhanni.utils.repopatterns.RepoPattern
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
 import kotlin.math.abs
 import kotlin.math.floor
@@ -58,6 +57,10 @@ object SafariMoundTracker {
     private const val MIN_HEIGHT = 0.25
     private const val MAX_HEIGHT = 0.95
     private const val SCAN_RADIUS = 64.0
+
+    // The entity type constants moved from EntityType to EntityTypes in 26.2.
+    //~ if < 26.2 'EntityTypes' -> 'EntityType'
+    private val interactionType get() = net.minecraft.world.entity.EntityTypes.INTERACTION
 
     /** Mounds are on the Cavern floor, which is below this. */
     private const val MAX_Y = 65.0
@@ -107,8 +110,8 @@ object SafariMoundTracker {
         val nearby = EntityUtils.getAllEntities()
             .filter { it.distanceSqToPlayer() <= SCAN_RADIUS * SCAN_RADIUS }
             .toList()
-        val creatures = nearby.filter { it.type != EntityType.INTERACTION && it is LivingEntity }
-        val candidates = nearby.filter { it.type == EntityType.INTERACTION && looksLikeAMound(it) }
+        val creatures = nearby.filter { it.type != interactionType && it is LivingEntity }
+        val candidates = nearby.filter { it.type == interactionType && looksLikeAMound(it) }
 
         return candidates.filter { !wrapsACreature(it, creatures) }.map { it.getLorenzVec().roundToBlock() }
     }

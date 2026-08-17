@@ -253,12 +253,16 @@ data class VisualWordText(
             return result
         }
 
+        // The 16 legacy colors are the first ChatFormatting entries, in the fixed code order 0-9a-f.
+        // ChatFormatting no longer exposes isColor()/getChar() in 26.2, so match by resolved color and
+        // derive the code from the ordinal instead.
+        private const val LEGACY_COLOR_CODES = "0123456789abcdef"
+
         private fun serializeStyle(style: Style): String {
             val color = style.color ?: return ""
-            val legacy = ChatFormatting.entries.firstOrNull { cf ->
-                cf.isColor && TextColor.fromLegacyFormat(cf) == color
-            }
-            return if (legacy != null) "&&${legacy.char}"
+            val legacy = ChatFormatting.entries.take(LEGACY_COLOR_CODES.length)
+                .firstOrNull { cf -> TextColor.fromLegacyFormat(cf) == color }
+            return if (legacy != null) "&&${LEGACY_COLOR_CODES[legacy.ordinal]}"
             else "&#%06X".format(color.value and 0xFFFFFF)
         }
     }

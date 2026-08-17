@@ -16,10 +16,10 @@ import at.hannibal2.skyhanni.utils.SkyBlockUtils
 import at.hannibal2.skyhanni.utils.TimeUnit
 import at.hannibal2.skyhanni.utils.TimeUtils.format
 import at.hannibal2.skyhanni.utils.collection.CollectionUtils.addOrPut
+import at.hannibal2.skyhanni.utils.compat.MinecraftCompat
 import at.hannibal2.skyhanni.utils.renderables.Renderable
 import at.hannibal2.skyhanni.utils.renderables.container.VerticalContainerRenderable.Companion.vertical
 import at.hannibal2.skyhanni.utils.renderables.primitives.text
-import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 import java.time.LocalDate
 import kotlin.time.Duration.Companion.seconds
@@ -159,7 +159,7 @@ object SkyblockDailyPlaytimeTracker {
             description = "Opens the SkyBlock daily playtime tracker GUI with per-day history and averages."
             category = CommandCategory.USERS_ACTIVE
             simpleCallback {
-                Minecraft.getInstance().setScreen(PlaytimeTrackerGui())
+                MinecraftCompat.screen = PlaytimeTrackerGui()
             }
         }
     }
@@ -169,7 +169,7 @@ object SkyblockDailyPlaytimeTracker {
         val key = config.openGuiHotkey
         if (key == GLFW.GLFW_KEY_UNKNOWN) return
         if (event.keyCode != key) return
-        if (Minecraft.getInstance().screen != null) return
-        Minecraft.getInstance().setScreen(PlaytimeTrackerGui())
+        if (MinecraftCompat.screen != null) return
+        MinecraftCompat.screen = PlaytimeTrackerGui()
     }
 }
