@@ -258,7 +258,7 @@ object SafariEncounterAlerts {
     /** Silent unless asked for: a run fires plenty of these. */
     private fun sound(pitch: Float) {
         if (!config.alertSound) return
-        SoundUtils.createSound("block.note_block.pling", pitch).playSound()
+        SoundUtils.createSound("block.note_block.pling", pitch, isWarning = true).playSound()
     }
 
     /** Fires every alert now, with the biome gate lifted, so they can be checked without waiting. */
